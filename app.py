@@ -1,40 +1,89 @@
 """
 AI Operations Assistant
-Version 1.1 - Rule-Based Workflow Generator
+Version 1.2 - Structured Task Management
 
 PURPOSE
 -------
-This application demonstrates how an unstructured operational request
-can be converted into a structured workflow.
+Transform plain-English operational requests into structured workflows.
 
-CURRENT ARCHITECTURE
---------------------
-User Request
-    ↓
-Text Normalization
-    ↓
-Rule-Based Task Detection
-    ↓
-Structured Workflow Dictionary
-    ↓
-Terminal Output
+Version 1.2 introduces a TASK DATA MODEL.
 
-WHY START WITH RULES INSTEAD OF AI?
------------------------------------
-Before introducing an LLM or external API, this version establishes
-the application's core workflow logic.
+Previously, tasks were stored as simple strings:
 
-This makes the application easier to:
-- Understand
-- Test
-- Debug
-- Expand
+    "Create interview schedule"
 
-Future versions can supplement or replace these rules with
-AI-powered natural-language interpretation.
+Tasks are now structured dictionaries:
+
+    {
+        "id": 1,
+        "task": "Create interview schedule",
+        "category": "Scheduling",
+        "priority": "High",
+        "owner": "Unassigned",
+        "status": "Not Started"
+    }
+
+WHY THIS MATTERS
+----------------
+Structured data allows future versions of the application to:
+
+- Sort tasks by priority
+- Assign task owners
+- Track completion
+- Calculate workflow progress
+- Export workflows
+- Store workflows in JSON or databases
+- Display workflows in a web dashboard
+- Allow AI to modify workflow attributes
 """
 
 from datetime import date
+
+
+# ===========================================================================
+# TASK CREATION
+# ===========================================================================
+
+def create_task(task_id, name, category, priority="Medium"):
+    """
+    Create a standardized task object.
+
+    Parameters
+    ----------
+    task_id : int
+        Unique number identifying the task.
+
+    name : str
+        Human-readable description of the work.
+
+    category : str
+        Operational category associated with the task.
+
+    priority : str
+        Importance level. Defaults to "Medium".
+
+    Returns
+    -------
+    dict
+        Structured task data.
+
+    DESIGN DECISION
+    ---------------
+    Task creation is handled by one function so every task follows
+    the same data structure.
+
+    Later, additional fields such as due dates and dependencies can
+    be added here without rewriting every workflow rule.
+    """
+
+    return {
+        "id": task_id,
+        "task": name,
+        "category": category,
+        "priority": priority,
+        "owner": "Unassigned",
+        "status": "Not Started",
+    }
 
 
 # ===========================================================================
@@ -43,139 +92,174 @@ from datetime import date
 
 def analyze_request(request):
     """
-    Analyze a plain-English operational request and generate a workflow.
+    Convert an operational request into structured workflow data.
 
-    Parameters
-    ----------
-    request : str
-        The operational request entered by the user.
-
-    Returns
+    PROCESS
     -------
-    dict
-        A structured workflow containing:
-        - original request
-        - creation date
-        - workflow status
-        - generated tasks
+    1. Normalize user input.
+    2. Detect operational concepts.
+    3. Generate structured tasks.
+    4. Assign task IDs.
+    5. Package tasks inside a workflow object.
 
-    Example
-    -------
-    Input:
-        "Schedule candidate interviews and track confirmations."
+    NOTE
+    ----
+    Version 1.2 still uses rule-based keyword detection.
 
-    Generated tasks:
-        1. Create interview schedule
-        2. Track candidate status
-        3. Send and track confirmations
-        4. Review workflow and determine next action
+    Future AI integration will improve interpretation of requests that
+    use different wording but describe the same operational concept.
     """
-
-    # -----------------------------------------------------------------------
-    # STEP 1: NORMALIZE USER INPUT
-    # -----------------------------------------------------------------------
-    #
-    # Converting the request to lowercase makes keyword detection
-    # case-insensitive.
-    #
-    # For example:
-    # "Interview", "INTERVIEW", and "interview"
-    # will all be interpreted the same way.
 
     request_lower = request.lower()
 
-    # This list will contain the operational tasks detected by the engine.
     tasks = []
 
+    # task_id increases every time a task is created.
+    #
+    # This provides each task with a unique identifier inside the workflow.
+
+    task_id = 1
+
     # -----------------------------------------------------------------------
-    # STEP 2: RULE-BASED TASK DETECTION
+    # SCHEDULING / INTERVIEWS
     # -----------------------------------------------------------------------
-    #
-    # Version 1 uses simple keyword matching.
-    #
-    # The basic relationship is:
-    #
-    # USER LANGUAGE
-    #       ↓
-    # KEYWORD DETECTION
-    #       ↓
-    # OPERATIONAL TASK
-    #
-    # Example:
-    #
-    # "We need to interview candidates."
-    #
-    #           ↓ detects "interview"
-    #
-    # "Create interview schedule"
-    #
-    # Future versions will use AI to understand context instead of
-    # relying exclusively on predefined keywords.
 
     if "interview" in request_lower:
-        tasks.append("Create interview schedule")
+
+        tasks.append(
+            create_task(
+                task_id,
+                "Create interview schedule",
+                "Scheduling",
+                "High",
+            )
+        )
+
+        task_id += 1
+
+    # -----------------------------------------------------------------------
+    # CANDIDATE TRACKING
+    # -----------------------------------------------------------------------
 
     if "candidate" in request_lower:
-        tasks.append("Track candidate status")
+
+        tasks.append(
+            create_task(
+                task_id,
+                "Track candidate status",
+                "Recruiting Operations",
+                "Medium",
+            )
+        )
+
+        task_id += 1
+
+    # -----------------------------------------------------------------------
+    # CONFIRMATIONS
+    # -----------------------------------------------------------------------
 
     if "confirmation" in request_lower or "confirm" in request_lower:
-        tasks.append("Send and track confirmations")
+
+        tasks.append(
+            create_task(
+                task_id,
+                "Send and track confirmations",
+                "Communication",
+                "High",
+            )
+        )
+
+        task_id += 1
+
+    # -----------------------------------------------------------------------
+    # COMMITTEE COMMUNICATION
+    # -----------------------------------------------------------------------
 
     if "committee" in request_lower:
-        tasks.append("Prepare committee update")
 
-    if "schedule" in request_lower:
-        tasks.append("Review scheduling requirements")
+        tasks.append(
+            create_task(
+                task_id,
+                "Prepare committee update",
+                "Communication",
+                "Medium",
+            )
+        )
+
+        task_id += 1
+
+    # -----------------------------------------------------------------------
+    # GENERAL EMAIL REQUESTS
+    # -----------------------------------------------------------------------
 
     if "email" in request_lower:
-        tasks.append("Prepare required email communication")
+
+        tasks.append(
+            create_task(
+                task_id,
+                "Prepare required email communication",
+                "Communication",
+                "Medium",
+            )
+        )
+
+        task_id += 1
+
+    # -----------------------------------------------------------------------
+    # REPORTING
+    # -----------------------------------------------------------------------
 
     if "report" in request_lower:
-        tasks.append("Prepare operational report")
+
+        tasks.append(
+            create_task(
+                task_id,
+                "Prepare operational report",
+                "Reporting",
+                "Medium",
+            )
+        )
+
+        task_id += 1
+
+    # -----------------------------------------------------------------------
+    # DOCUMENTATION
+    # -----------------------------------------------------------------------
 
     if "document" in request_lower:
-        tasks.append("Prepare or review documentation")
+
+        tasks.append(
+            create_task(
+                task_id,
+                "Prepare or review documentation",
+                "Documentation",
+                "Medium",
+            )
+        )
+
+        task_id += 1
 
     # -----------------------------------------------------------------------
-    # STEP 3: DEFAULT REVIEW TASK
+    # DEFAULT REVIEW TASK
     # -----------------------------------------------------------------------
     #
-    # Every workflow ends with a review step.
+    # Every workflow receives a final review step.
     #
-    # This also ensures the workflow contains at least one task even when
-    # the rule engine does not recognize any keywords.
+    # This provides a logical closing action and ensures the workflow
+    # is never empty.
 
-    tasks.append("Review workflow and determine next action")
+    tasks.append(
+        create_task(
+            task_id,
+            "Review workflow and determine next action",
+            "Workflow Management",
+            "Low",
+        )
+    )
 
     # -----------------------------------------------------------------------
-    # STEP 4: BUILD STRUCTURED WORKFLOW DATA
+    # WORKFLOW OBJECT
     # -----------------------------------------------------------------------
-    #
-    # Instead of returning only a list of tasks, the application stores
-    # workflow information inside a Python dictionary.
-    #
-    # Current structure:
-    #
-    # workflow
-    # ├── request
-    # ├── created
-    # ├── status
-    # └── tasks
-    #
-    # This structure makes future expansion easier.
-    #
-    # Future versions can add:
-    #
-    # - workflow ID
-    # - priority
-    # - task owner
-    # - due date
-    # - task status
-    # - dependencies
-    # - completion percentage
-    #
-    # The dictionary can also later be converted into JSON for APIs,
-    # databases, or web applications.
 
     workflow = {
         "request": request,
@@ -188,76 +272,164 @@ def analyze_request(request):
 
 
 # ===========================================================================
+# WORKFLOW METRICS
+# ===========================================================================
+
+def calculate_progress(workflow):
+    """
+    Calculate workflow completion percentage.
+
+    A task is considered complete when:
+
+        status == "Completed"
+
+    Formula:
+
+        completed tasks / total tasks * 100
+
+    Example
+    -------
+    2 completed tasks out of 5:
+
+        2 / 5 * 100 = 40%
+
+    This functionality becomes useful when workflows are later displayed
+    inside dashboards.
+    """
+
+    total_tasks = len(workflow["tasks"])
+
+    if total_tasks == 0:
+        return 0
+
+    completed_tasks = sum(
+        1
+        for task in workflow["tasks"]
+        if task["status"] == "Completed"
+    )
+
+    return round((completed_tasks / total_tasks) * 100)
+
+
+# ===========================================================================
+# NEXT ACTION LOGIC
+# ===========================================================================
+
+def determine_next_action(workflow):
+    """
+    Determine the next recommended task.
+
+    Version 1.2 uses priority as the primary decision rule.
+
+    Priority ranking:
+
+        High   = 1
+        Medium = 2
+        Low    = 3
+
+    Future versions can consider:
+    - deadlines
+    - dependencies
+    - assigned owners
+    - workload
+    - AI recommendations
+    """
+
+    priority_rank = {
+        "High": 1,
+        "Medium": 2,
+        "Low": 3,
+    }
+
+    incomplete_tasks = [
+        task
+        for task in workflow["tasks"]
+        if task["status"] != "Completed"
+    ]
+
+    if not incomplete_tasks:
+        return None
+
+    # min() selects the task with the smallest priority ranking.
+    #
+    # Because High = 1, high-priority work is selected first.
+    #
+    # task["id"] acts as a secondary sorting value so earlier tasks win
+    # when multiple tasks have the same priority.
+
+    return min(
+        incomplete_tasks,
+        key=lambda task: (
+            priority_rank.get(task["priority"], 99),
+            task["id"],
+        ),
+    )
+
+
+# ===========================================================================
 # WORKFLOW DISPLAY
 # ===========================================================================
 
 def display_workflow(workflow):
     """
-    Display workflow information in a readable terminal format.
+    Display workflow information and structured tasks.
 
-    DESIGN DECISION
-    ---------------
-    Workflow analysis and workflow presentation are deliberately
-    separated.
+    Presentation remains separate from workflow analysis.
 
-    analyze_request()
-        Determines WHAT the workflow contains.
-
-    display_workflow()
-        Determines HOW the workflow is presented.
-
-    This separation will allow a future web interface to use the same
-    workflow engine without rewriting the underlying analysis logic.
+    This separation will allow the command-line interface to eventually
+    be replaced by a web interface while keeping the workflow engine.
     """
 
     print("\nAI OPERATIONS ASSISTANT")
-    print("=" * 50)
-
-    # -----------------------------------------------------------------------
-    # WORKFLOW METADATA
-    # -----------------------------------------------------------------------
+    print("=" * 60)
 
     print(f"\nRequest: {workflow['request']}")
     print(f"Created: {workflow['created']}")
     print(f"Status: {workflow['status']}")
 
+    progress = calculate_progress(workflow)
+
+    print(f"Progress: {progress}%")
+
+    print("\nTASKS")
+    print("=" * 60)
+
+    for task in workflow["tasks"]:
+
+        print(f"\nTASK {task['id']:03}")
+
+        print(task["task"])
+
+        print(f"Category: {task['category']}")
+        print(f"Priority: {task['priority']}")
+        print(f"Owner: {task['owner']}")
+        print(f"Status: {task['status']}")
+
+        print("-" * 60)
+
     # -----------------------------------------------------------------------
-    # GENERATED TASKS
+    # NEXT RECOMMENDED ACTION
     # -----------------------------------------------------------------------
 
-    print("\nGenerated Tasks")
-    print("-" * 50)
+    next_task = determine_next_action(workflow)
 
-    # enumerate() provides both:
-    #
-    # - the task itself
-    # - a sequential task number
-    #
-    # start=1 creates user-friendly numbering beginning at 1 rather than 0.
+    print("\nNEXT RECOMMENDED ACTION")
+    print("=" * 60)
 
-    for number, task in enumerate(workflow["tasks"], start=1):
-        print(f"{number}. {task}")
+    if next_task:
 
-    # -----------------------------------------------------------------------
-    # NEXT ACTION
-    # -----------------------------------------------------------------------
-    #
-    # Version 1 considers the first generated task the next action.
-    #
-    # Later versions can determine this using:
-    #
-    # - priority
-    # - deadlines
-    # - dependencies
-    # - workflow status
-    # - AI recommendations
+        print(
+            f"TASK {next_task['id']:03} - "
+            f"{next_task['task']}"
+        )
 
-    print("\nNext Action")
-    print("-" * 50)
+        print(f"Priority: {next_task['priority']}")
 
-    print(workflow["tasks"][0])
+    else:
 
-    print("\n" + "=" * 50)
+        print("All tasks completed.")
+
+    print("\n" + "=" * 60)
 
 
 # ===========================================================================
@@ -266,66 +438,29 @@ def display_workflow(workflow):
 
 def main():
     """
-    Run the command-line version of the AI Operations Assistant.
+    Run the command-line application.
 
-    APPLICATION FLOW
-    ----------------
-
-    1. Start application
-            ↓
-    2. Request operational work description
-            ↓
-    3. Analyze request
-            ↓
-    4. Generate structured workflow
-            ↓
-    5. Display workflow
-
-    ENVIRONMENT HANDLING
-    --------------------
-    A normal terminal supports Python's input() function.
-
-    Some browser-based or cloud execution environments do not.
-
-    If interactive input is unavailable, the application automatically
-    switches to demonstration mode instead of crashing.
+    If interactive input is unavailable, the program automatically
+    switches to demonstration mode.
     """
 
     print("AI Operations Assistant")
-    print("-" * 50)
-    print("Turn an operational request into an organized workflow.\n")
+    print("-" * 60)
+
+    print(
+        "Transform operational requests into structured workflows.\n"
+    )
 
     try:
-
-        # -------------------------------------------------------------------
-        # INTERACTIVE MODE
-        # -------------------------------------------------------------------
-        #
-        # input() pauses execution and waits for the user to enter an
-        # operational request.
 
         request = input(
             "Describe the work that needs to be completed:\n> "
         )
 
-        # strip() removes whitespace from the beginning and end.
-        #
-        # If nothing meaningful was entered, we treat the request as empty.
-
         if not request.strip():
-            raise ValueError("No operational request was entered.")
+            raise ValueError("No request entered.")
 
     except (OSError, EOFError, ValueError):
-
-        # -------------------------------------------------------------------
-        # DEMONSTRATION MODE
-        # -------------------------------------------------------------------
-        #
-        # Some execution environments cannot provide interactive keyboard
-        # input.
-        #
-        # Instead of terminating the application, we provide a realistic
-        # example request so the workflow engine can still be demonstrated.
 
         print(
             "\nInteractive input is unavailable."
@@ -340,17 +475,12 @@ def main():
 
         print("Demo Request:")
         print(request)
-        print()
 
-    # -----------------------------------------------------------------------
-    # PROCESS REQUEST
-    # -----------------------------------------------------------------------
+    # Generate the structured workflow.
 
     workflow = analyze_request(request)
 
-    # -----------------------------------------------------------------------
-    # DISPLAY RESULT
-    # -----------------------------------------------------------------------
+    # Display the results.
 
     display_workflow(workflow)
 
@@ -358,27 +488,6 @@ def main():
 # ===========================================================================
 # PROGRAM START
 # ===========================================================================
-#
-# Python files can either:
-#
-# 1. Be executed directly.
-# 2. Be imported into another Python program.
-#
-# __name__ contains information about how Python loaded this file.
-#
-# When this file is executed directly:
-#
-#     __name__ == "__main__"
-#
-# Therefore the following condition starts the application only when
-# app.py itself is executed.
-#
-# This becomes important later because another file will be able to:
-#
-#     from app import analyze_request
-#
-# without automatically launching the command-line program.
-
 
 if __name__ == "__main__":
     main()
