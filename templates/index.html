@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI Operations Assistant</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+
+<body>
+
+    <!-- ================================================================
+         APPLICATION HEADER
+         ================================================================ -->
+
+    <header class="app-header">
+
+        <div class="header-content">
+
+            <div>
+
+                <p class="eyebrow">
+                    WORKFLOW AUTOMATION
+                </p>
+
+                <h1>
+                    AI Operations Assistant
+                </h1>
+
+                <p class="subtitle">
+                    Turn operational requests into structured,
+                    actionable workflows.
+                </p>
+
+            </div>
+
+
+            <div class="status-badge">
+                System Online
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================================================================
+         DASHBOARD
+         ================================================================ -->
+
+    <main class="dashboard">
+
+
+        <!-- ============================================================
+             WORKFLOW METRICS
+             ============================================================ -->
+
+        <section class="metrics">
+
+
+            <article class="metric-card">
+
+                <span class="metric-label">
+                    Saved Workflows
+                </span>
+
+                <strong class="metric-value">
+                    {{ dashboard.total }}
+                </strong>
+
+            </article>
+
+
+            <article class="metric-card">
+
+                <span class="metric-label">
+                    Active Workflows
+                </span>
+
+                <strong class="metric-value">
+                    {{ dashboard.active }}
+                </strong>
+
+            </article>
+
+
+            <article class="metric-card">
+
+                <span class="metric-label">
+                    Completed
+                </span>
+
+                <strong class="metric-value">
+                    {{ dashboard.completed }}
+                </strong>
+
+            </article>
+
+
+        </section>
+
+
+        <!-- ============================================================
+             WORKFLOW CREATION
+             ============================================================ -->
+
+        <section class="panel">
+
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <p class="section-label">
+                        NEW WORKFLOW
+                    </p>
+
+                    <h2>
+                        What needs to get done?
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <!--
+                The form is visual-only for Version 2.1.
+
+                In Version 2.2 we will connect this form to a Flask POST
+                route that creates workflows through the existing engine.
+            -->
+
+            <form class="workflow-form">
+
+                <label for="request">
+                    Operational Request
+                </label>
+
+
+                <textarea
+                    id="request"
+                    name="request"
+                    rows="6"
+                    placeholder="Example: Coordinate interviews with five candidates, send confirmation emails, and prepare an update for the hiring committee."
+                ></textarea>
+
+
+                <div class="form-footer">
+
+                    <p>
+                        Describe the outcome in plain English.
+                        The workflow engine will organize the work.
+                    </p>
+
+
+                    <button type="submit">
+                        Generate Workflow
+                    </button>
+
+                </div>
+
+            </form>
+
+
+        </section>
+
+
+        <!-- ============================================================
+             SAVED WORKFLOWS
+             ============================================================ -->
+
+        <section class="panel">
+
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <p class="section-label">
+                        WORKFLOW MANAGEMENT
+                    </p>
+
+                    <h2>
+                        Recent Workflows
+                    </h2>
+
+                </div>
+
+
+                <span class="workflow-count">
+
+                    {{ dashboard.total }}
+
+                    {% if dashboard.total == 1 %}
+                        workflow
+                    {% else %}
+                        workflows
+                    {% endif %}
+
+                </span>
+
+            </div>
+
+
+            <!--
+                Jinja allows Python-provided data to control HTML.
+
+                If workflows exist, render them.
+
+                Otherwise display the empty state.
+            -->
+
+
+            {% if dashboard.workflows %}
+
+
+                <div class="workflow-list">
+
+
+                    {% for workflow in dashboard.workflows %}
+
+
+                        <article class="workflow-item">
+
+
+                            <div class="workflow-top-row">
+
+
+                                <div>
+
+                                    <span class="workflow-id">
+                                        {{ workflow.id }}
+                                    </span>
+
+
+                                    <span
+                                        class="workflow-status
+                                        {% if workflow.status == 'Completed' %}
+                                            status-completed
+                                        {% else %}
+                                            status-active
+                                        {% endif %}
+                                        "
+                                    >
+
+                                        {{ workflow.status }}
+
+                                    </span>
+
+                                </div>
+
+
+                                <strong class="progress-value">
+                                    {{ workflow.progress }}%
+                                </strong>
+
+
+                            </div>
+
+
+                            <p class="workflow-request">
+                                {{ workflow.request }}
+                            </p>
+
+
+                            <!-- PROGRESS BAR -->
+
+                            <div class="progress-track">
+
+                                <div
+                                    class="progress-bar"
+                                    data-progress="{{ workflow.progress | int }}"
+                                ></div>
+
+                            </div>
+
+                            <div class="workflow-meta">
+
+                                <span>
+                                    {{ workflow.task_count }} tasks
+                                </span>
+
+                                <span>
+                                    Created {{ workflow.created }}
+                                </span>
+
+                            </div>
+
+
+                        </article>
+
+
+                    {% endfor %}
+
+
+                </div>
+
+
+            {% else %}
+
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        ✓
+                    </div>
+
+                    <h3>
+                        No workflows yet
+                    </h3>
+
+                    <p>
+                        Create your first operational workflow
+                        to begin tracking work.
+                    </p>
+
+                </div>
+
+
+            {% endif %}
+
+
+        </section>
+
+
+    </main>
+
+
+    <!-- ================================================================
+         FOOTER
+         ================================================================ -->
+
+    <footer>
+
+        <p>
+            AI Operations Assistant • Python + Flask
+        </p>
+
+    </footer>
+
+
+</body>
+
+</html>
