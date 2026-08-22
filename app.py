@@ -1,44 +1,50 @@
 """
 AI Operations Assistant
-Version 1.2 - Structured Task Management
+Version 1.5 - Interactive Workflow Manager
 
 PURPOSE
 -------
-Transform plain-English operational requests into structured workflows.
+Transform plain-English operational requests into structured workflows
+that can be saved, reviewed, and updated.
 
-Version 1.2 introduces a TASK DATA MODEL.
+VERSION 1.5
+-----------
+This version introduces an interactive application menu.
 
-Previously, tasks were stored as simple strings:
+Users can now:
 
-    "Create interview schedule"
+1. Create workflows
+2. View saved workflows
+3. Inspect workflow details
+4. Update task statuses
+5. Track workflow progress
 
-Tasks are now structured dictionaries:
+ARCHITECTURE
+------------
+User
+  ↓
+Command-Line Interface
+  ↓
+Workflow Engine
+  ↓
+Structured Task Data
+  ↓
+JSON Persistence Layer
 
-    {
-        "id": 1,
-        "task": "Create interview schedule",
-        "category": "Scheduling",
-        "priority": "High",
-        "owner": "Unassigned",
-        "status": "Not Started"
-    }
-
-WHY THIS MATTERS
-----------------
-Structured data allows future versions of the application to:
-
-- Sort tasks by priority
-- Assign task owners
-- Track completion
-- Calculate workflow progress
-- Export workflows
-- Store workflows in JSON or databases
-- Display workflows in a web dashboard
-- Allow AI to modify workflow attributes
+Future versions can replace the command-line interface with a web UI
+while preserving the workflow and storage layers.
 """
 
 from datetime import date
-from storage import save_workflow, count_workflows
+
+from storage import (
+    count_workflows,
+    get_workflow,
+    load_workflows,
+    save_workflow,
+    update_workflow,
+)
+
 
 # ===========================================================================
 # TASK CREATION
@@ -47,34 +53,9 @@ from storage import save_workflow, count_workflows
 
 def create_task(task_id, name, category, priority="Medium"):
     """
-    Create a standardized task object.
+    Create a standardized operational task.
 
-    Parameters
-    ----------
-    task_id : int
-        Unique number identifying the task.
-
-    name : str
-        Human-readable description of the work.
-
-    category : str
-        Operational category associated with the task.
-
-    priority : str
-        Importance level. Defaults to "Medium".
-
-    Returns
-    -------
-    dict
-        Structured task data.
-
-    DESIGN DECISION
-    ---------------
-    Task creation is handled by one function so every task follows
-    the same data structure.
-
-    Later, additional fields such as due dates and dependencies can
-    be added here without rewriting every workflow rule.
+    Each task contains information needed for tracking and prioritization.
     """
 
     return {
@@ -88,46 +69,76 @@ def create_task(task_id, name, category, priority="Medium"):
 
 
 # ===========================================================================
+# WORKFLOW ID GENERATION
+# ===========================================================================
+
+
+def generate_workflow_id():
+    """
+    Generate the next sequential workflow ID.
+
+    Example
+    -------
+    If three workflows exist:
+
+        WF-001
+        WF-002
+        WF-003
+
+    the next workflow becomes:
+
+        WF-004
+
+    NOTE
+    ----
+    Sequential IDs are sufficient for this local application.
+
+    A production system would typically use database-generated IDs
+    or UUIDs.
+    """
+
+    workflows = load_workflows()
+
+    highest_number = 0
+
+    for workflow in workflows:
+        workflow_id = workflow.get("id", "")
+
+        if workflow_id.startswith("WF-"):
+            try:
+                number = int(workflow_id.split("-")[1])
+                highest_number = max(highest_number, number)
+            except (ValueError, IndexError):
+                continue
+
+    return f"WF-{highest_number + 1:03}"
+
+
+# ===========================================================================
 # WORKFLOW ANALYSIS
 # ===========================================================================
 
 
 def analyze_request(request):
     """
-    Convert an operational request into structured workflow data.
+    Convert a plain-English operational request into structured tasks.
 
-    PROCESS
-    -------
-    1. Normalize user input.
-    2. Detect operational concepts.
-    3. Generate structured tasks.
-    4. Assign task IDs.
-    5. Package tasks inside a workflow object.
+    Version 1.5 continues to use deterministic keyword rules.
 
-    NOTE
-    ----
-    Version 1.2 still uses rule-based keyword detection.
-
-    Future AI integration will improve interpretation of requests that
-    use different wording but describe the same operational concept.
+    This provides a predictable workflow engine before AI interpretation
+    is introduced in a later version.
     """
 
     request_lower = request.lower()
 
     tasks = []
-
-    # task_id increases every time a task is created.
-    #
-    # This provides each task with a unique identifier inside the workflow.
-
     task_id = 1
 
     # -----------------------------------------------------------------------
-    # SCHEDULING / INTERVIEWS
+    # INTERVIEW SCHEDULING
     # -----------------------------------------------------------------------
 
     if "interview" in request_lower:
-
         tasks.append(
             create_task(
                 task_id,
@@ -136,7 +147,6 @@ def analyze_request(request):
                 "High",
             )
         )
-
         task_id += 1
 
     # -----------------------------------------------------------------------
@@ -144,7 +154,6 @@ def analyze_request(request):
     # -----------------------------------------------------------------------
 
     if "candidate" in request_lower:
-
         tasks.append(
             create_task(
                 task_id,
@@ -153,7 +162,6 @@ def analyze_request(request):
                 "Medium",
             )
         )
-
         task_id += 1
 
     # -----------------------------------------------------------------------
@@ -161,7 +169,6 @@ def analyze_request(request):
     # -----------------------------------------------------------------------
 
     if "confirmation" in request_lower or "confirm" in request_lower:
-
         tasks.append(
             create_task(
                 task_id,
@@ -170,7 +177,6 @@ def analyze_request(request):
                 "High",
             )
         )
-
         task_id += 1
 
     # -----------------------------------------------------------------------
@@ -178,7 +184,6 @@ def analyze_request(request):
     # -----------------------------------------------------------------------
 
     if "committee" in request_lower:
-
         tasks.append(
             create_task(
                 task_id,
@@ -187,15 +192,13 @@ def analyze_request(request):
                 "Medium",
             )
         )
-
         task_id += 1
 
     # -----------------------------------------------------------------------
-    # GENERAL EMAIL REQUESTS
+    # EMAIL
     # -----------------------------------------------------------------------
 
     if "email" in request_lower:
-
         tasks.append(
             create_task(
                 task_id,
@@ -204,7 +207,6 @@ def analyze_request(request):
                 "Medium",
             )
         )
-
         task_id += 1
 
     # -----------------------------------------------------------------------
@@ -212,7 +214,6 @@ def analyze_request(request):
     # -----------------------------------------------------------------------
 
     if "report" in request_lower:
-
         tasks.append(
             create_task(
                 task_id,
@@ -221,7 +222,6 @@ def analyze_request(request):
                 "Medium",
             )
         )
-
         task_id += 1
 
     # -----------------------------------------------------------------------
@@ -229,7 +229,6 @@ def analyze_request(request):
     # -----------------------------------------------------------------------
 
     if "document" in request_lower:
-
         tasks.append(
             create_task(
                 task_id,
@@ -238,17 +237,11 @@ def analyze_request(request):
                 "Medium",
             )
         )
-
         task_id += 1
 
     # -----------------------------------------------------------------------
-    # DEFAULT REVIEW TASK
+    # DEFAULT WORKFLOW REVIEW
     # -----------------------------------------------------------------------
-    #
-    # Every workflow receives a final review step.
-    #
-    # This provides a logical closing action and ensures the workflow
-    # is never empty.
 
     tasks.append(
         create_task(
@@ -259,11 +252,8 @@ def analyze_request(request):
         )
     )
 
-    # -----------------------------------------------------------------------
-    # WORKFLOW OBJECT
-    # -----------------------------------------------------------------------
-
     workflow = {
+        "id": generate_workflow_id(),
         "request": request,
         "created": str(date.today()),
         "status": "Active",
@@ -274,30 +264,13 @@ def analyze_request(request):
 
 
 # ===========================================================================
-# WORKFLOW METRICS
+# WORKFLOW PROGRESS
 # ===========================================================================
 
 
 def calculate_progress(workflow):
     """
-    Calculate workflow completion percentage.
-
-    A task is considered complete when:
-
-        status == "Completed"
-
-    Formula:
-
-        completed tasks / total tasks * 100
-
-    Example
-    -------
-    2 completed tasks out of 5:
-
-        2 / 5 * 100 = 40%
-
-    This functionality becomes useful when workflows are later displayed
-    inside dashboards.
+    Calculate the percentage of completed tasks.
     """
 
     total_tasks = len(workflow["tasks"])
@@ -313,28 +286,21 @@ def calculate_progress(workflow):
 
 
 # ===========================================================================
-# NEXT ACTION LOGIC
+# NEXT ACTION
 # ===========================================================================
 
 
 def determine_next_action(workflow):
     """
-    Determine the next recommended task.
+    Select the highest-priority incomplete task.
 
-    Version 1.2 uses priority as the primary decision rule.
+    Ranking
+    -------
+    High   -> 1
+    Medium -> 2
+    Low    -> 3
 
-    Priority ranking:
-
-        High   = 1
-        Medium = 2
-        Low    = 3
-
-    Future versions can consider:
-    - deadlines
-    - dependencies
-    - assigned owners
-    - workload
-    - AI recommendations
+    Task ID is used as a secondary ranking when priorities match.
     """
 
     priority_rank = {
@@ -350,13 +316,6 @@ def determine_next_action(workflow):
     if not incomplete_tasks:
         return None
 
-    # min() selects the task with the smallest priority ranking.
-    #
-    # Because High = 1, high-priority work is selected first.
-    #
-    # task["id"] acts as a secondary sorting value so earlier tasks win
-    # when multiple tasks have the same priority.
-
     return min(
         incomplete_tasks,
         key=lambda task: (
@@ -367,126 +326,318 @@ def determine_next_action(workflow):
 
 
 # ===========================================================================
-# WORKFLOW DISPLAY
+# DISPLAY WORKFLOW DETAILS
 # ===========================================================================
 
 
 def display_workflow(workflow):
     """
-    Display workflow information and structured tasks.
-
-    Presentation remains separate from workflow analysis.
-
-    This separation will allow the command-line interface to eventually
-    be replaced by a web interface while keeping the workflow engine.
+    Display complete information for one workflow.
     """
 
-    print("\nAI OPERATIONS ASSISTANT")
-    print("=" * 60)
+    print("\n" + "=" * 65)
+    print("WORKFLOW DETAILS")
+    print("=" * 65)
 
-    print(f"\nRequest: {workflow['request']}")
+    print(f"Workflow ID: {workflow['id']}")
     print(f"Created: {workflow['created']}")
     print(f"Status: {workflow['status']}")
+    print(f"Progress: {calculate_progress(workflow)}%")
 
-    progress = calculate_progress(workflow)
-
-    print(f"Progress: {progress}%")
+    print(f"\nRequest:\n{workflow['request']}")
 
     print("\nTASKS")
-    print("=" * 60)
+    print("-" * 65)
 
     for task in workflow["tasks"]:
-
         print(f"\nTASK {task['id']:03}")
-
         print(task["task"])
-
         print(f"Category: {task['category']}")
         print(f"Priority: {task['priority']}")
         print(f"Owner: {task['owner']}")
         print(f"Status: {task['status']}")
 
-        print("-" * 60)
-
-    # -----------------------------------------------------------------------
-    # NEXT RECOMMENDED ACTION
-    # -----------------------------------------------------------------------
-
     next_task = determine_next_action(workflow)
 
-    print("\nNEXT RECOMMENDED ACTION")
-    print("=" * 60)
+    print("\n" + "-" * 65)
+    print("NEXT RECOMMENDED ACTION")
 
     if next_task:
-
-        print(f"TASK {next_task['id']:03} - " f"{next_task['task']}")
-
-        print(f"Priority: {next_task['priority']}")
-
+        print(
+            f"TASK {next_task['id']:03} - "
+            f"{next_task['task']} [{next_task['priority']}]"
+        )
     else:
-
         print("All tasks completed.")
 
-    print("\n" + "=" * 60)
+    print("=" * 65)
 
 
 # ===========================================================================
-# APPLICATION ENTRY POINT
+# CREATE WORKFLOW
+# ===========================================================================
+
+
+def create_new_workflow():
+    """
+    Collect an operational request and create a persistent workflow.
+    """
+
+    print("\nCREATE NEW WORKFLOW")
+    print("-" * 65)
+
+    request = input(
+        "Describe the operational work that needs to be completed:\n> "
+    ).strip()
+
+    if not request:
+        print("\nA workflow cannot be created from an empty request.")
+        return
+
+    workflow = analyze_request(request)
+
+    save_workflow(workflow)
+
+    print(f"\nWorkflow {workflow['id']} created successfully.")
+
+    display_workflow(workflow)
+
+
+# ===========================================================================
+# LIST WORKFLOWS
+# ===========================================================================
+
+
+def list_saved_workflows():
+    """
+    Display a compact summary of all saved workflows.
+    """
+
+    workflows = load_workflows()
+
+    print("\nSAVED WORKFLOWS")
+    print("=" * 65)
+
+    if not workflows:
+        print("No workflows have been saved.")
+        return
+
+    for workflow in workflows:
+        progress = calculate_progress(workflow)
+
+        request_preview = workflow["request"]
+
+        if len(request_preview) > 45:
+            request_preview = request_preview[:42] + "..."
+
+        print(
+            f"{workflow['id']} | "
+            f"{workflow['status']:<9} | "
+            f"{progress:>3}% | "
+            f"{request_preview}"
+        )
+
+    print("-" * 65)
+    print(f"Total workflows: {count_workflows()}")
+
+
+# ===========================================================================
+# WORKFLOW SELECTION
+# ===========================================================================
+
+
+def request_workflow_id():
+    """
+    Ask the user for a workflow ID and normalize its format.
+
+    Entering either:
+
+        1
+
+    or:
+
+        WF-001
+
+    resolves to:
+
+        WF-001
+    """
+
+    workflow_id = input(
+        "\nEnter workflow ID (example: WF-001): "
+    ).strip().upper()
+
+    if workflow_id.isdigit():
+        workflow_id = f"WF-{int(workflow_id):03}"
+
+    return workflow_id
+
+
+# ===========================================================================
+# VIEW ONE WORKFLOW
+# ===========================================================================
+
+
+def view_workflow_details():
+    """
+    Retrieve and display a selected workflow.
+    """
+
+    workflow_id = request_workflow_id()
+
+    workflow = get_workflow(workflow_id)
+
+    if workflow is None:
+        print(f"\nWorkflow {workflow_id} was not found.")
+        return
+
+    display_workflow(workflow)
+
+
+# ===========================================================================
+# UPDATE TASK STATUS
+# ===========================================================================
+
+
+def update_task_status():
+    """
+    Update the status of a task inside a saved workflow.
+
+    Valid statuses:
+        1. Not Started
+        2. In Progress
+        3. Completed
+    """
+
+    workflow_id = request_workflow_id()
+
+    workflow = get_workflow(workflow_id)
+
+    if workflow is None:
+        print(f"\nWorkflow {workflow_id} was not found.")
+        return
+
+    display_workflow(workflow)
+
+    try:
+        task_id = int(input("\nEnter the task number to update: "))
+
+    except ValueError:
+        print("\nTask number must be numeric.")
+        return
+
+    selected_task = None
+
+    for task in workflow["tasks"]:
+        if task["id"] == task_id:
+            selected_task = task
+            break
+
+    if selected_task is None:
+        print(f"\nTask {task_id} was not found.")
+        return
+
+    print("\nSELECT NEW STATUS")
+    print("1. Not Started")
+    print("2. In Progress")
+    print("3. Completed")
+
+    status_choice = input("\nSelection: ").strip()
+
+    statuses = {
+        "1": "Not Started",
+        "2": "In Progress",
+        "3": "Completed",
+    }
+
+    new_status = statuses.get(status_choice)
+
+    if new_status is None:
+        print("\nInvalid status selection.")
+        return
+
+    selected_task["status"] = new_status
+
+    # Automatically close the workflow once every task is complete.
+    if all(task["status"] == "Completed" for task in workflow["tasks"]):
+        workflow["status"] = "Completed"
+    else:
+        workflow["status"] = "Active"
+
+    update_workflow(workflow)
+
+    print(
+        f"\nTASK {selected_task['id']:03} updated to "
+        f"'{selected_task['status']}'."
+    )
+
+    print(f"Workflow progress: {calculate_progress(workflow)}%")
+
+
+# ===========================================================================
+# MAIN MENU
+# ===========================================================================
+
+
+def display_menu():
+    """
+    Display the application's primary navigation menu.
+    """
+
+    print("\n" + "=" * 65)
+    print("AI OPERATIONS ASSISTANT")
+    print("=" * 65)
+
+    print("1. Create New Workflow")
+    print("2. View Saved Workflows")
+    print("3. View Workflow Details")
+    print("4. Update Task Status")
+    print("5. Exit")
+
+    print("-" * 65)
+
+
+# ===========================================================================
+# APPLICATION
 # ===========================================================================
 
 
 def main():
     """
-    Run the command-line application.
+    Run the interactive workflow manager.
 
-    If interactive input is unavailable, the program automatically
-    switches to demonstration mode.
+    The menu remains active until the user explicitly chooses Exit.
     """
 
-    print("AI Operations Assistant")
-    print("-" * 60)
+    while True:
+        display_menu()
 
-    print("Transform operational requests into structured workflows.\n")
+        choice = input("Select an option: ").strip()
 
-    try:
-        request = input("Describe the work that needs to be completed:\n> ")
+        if choice == "1":
+            create_new_workflow()
 
-        if not request.strip():
-            raise ValueError("No request entered.")
+        elif choice == "2":
+            list_saved_workflows()
 
-    except (OSError, EOFError, ValueError):
-        print(
-            "\nInteractive input is unavailable."
-            "\nRunning demonstration workflow instead.\n"
-        )
+        elif choice == "3":
+            view_workflow_details()
 
-        request = (
-            "Coordinate interviews with five candidates, "
-            "track confirmations, and prepare an update "
-            "for the hiring committee."
-        )
+        elif choice == "4":
+            update_task_status()
 
-        print("Demo Request:")
-        print(request)
+        elif choice == "5":
+            print("\nAI Operations Assistant closed.")
+            break
 
-    # Generate the structured workflow.
-    workflow = analyze_request(request)
-
-    # Display the workflow before saving it.
-    display_workflow(workflow)
-
-    # Persist the workflow so it remains available after the
-    # application closes.
-    save_workflow(workflow)
-
-    print("\nWorkflow saved successfully.")
-    print(f"Total saved workflows: {count_workflows()}")
+        else:
+            print("\nInvalid selection. Choose an option from 1 through 5.")
 
 
 # ===========================================================================
 # PROGRAM START
 # ===========================================================================
 
+
 if __name__ == "__main__":
     main()
-

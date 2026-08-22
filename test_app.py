@@ -296,6 +296,131 @@ class TestProgressCalculation(unittest.TestCase):
 # ===========================================================================
 # TEST RUNNER
 # ===========================================================================
+# ===========================================================================
+# WORKFLOW STATUS AND EDGE-CASE TESTS
+# ===========================================================================
 
+
+class TestWorkflowBehavior(unittest.TestCase):
+    """
+    Test workflow behavior beyond basic task generation.
+
+    These tests verify that the workflow engine behaves correctly as
+    tasks move through their lifecycle.
+    """
+
+    def test_completed_high_priority_task_is_skipped(self):
+        """
+        The recommendation engine should ignore completed work even when
+        that work has a higher priority than remaining tasks.
+        """
+
+        high_priority_task = create_task(
+            1,
+            "Urgent communication",
+            "Communication",
+            "High",
+        )
+
+        medium_priority_task = create_task(
+            2,
+            "Prepare report",
+            "Reporting",
+            "Medium",
+        )
+
+        high_priority_task["status"] = "Completed"
+
+        workflow = {
+            "tasks": [
+                high_priority_task,
+                medium_priority_task,
+            ]
+        }
+
+        next_task = determine_next_action(workflow)
+
+        self.assertEqual(
+            next_task["task"],
+            "Prepare report",
+        )
+
+    def test_all_completed_tasks_return_no_next_action(self):
+        """
+        When every task is complete, no next action should be returned.
+        """
+
+        task_one = create_task(
+            1,
+            "Task One",
+            "Testing",
+            "High",
+        )
+
+        task_two = create_task(
+            2,
+            "Task Two",
+            "Testing",
+            "Medium",
+        )
+
+        task_one["status"] = "Completed"
+        task_two["status"] = "Completed"
+
+        workflow = {
+            "tasks": [
+                task_one,
+                task_two,
+            ]
+        }
+
+        self.assertIsNone(
+            determine_next_action(workflow)
+        )
+
+    def test_unknown_request_still_generates_review_task(self):
+        """
+        Requests containing no recognized keywords should still produce
+        the default workflow review task.
+        """
+
+        workflow = analyze_request(
+            "Organize the miscellaneous items."
+        )
+
+        self.assertEqual(
+            len(workflow["tasks"]),
+            1,
+        )
+
+        self.assertEqual(
+            workflow["tasks"][0]["task"],
+            "Review workflow and determine next action",
+        )
+
+    def test_task_ids_are_sequential(self):
+        """
+        Generated tasks should receive sequential IDs beginning with 1.
+        """
+
+        workflow = analyze_request(
+            "Interview candidates, confirm schedules, "
+            "email the committee, and prepare a report."
+        )
+
+        task_ids = [
+            task["id"]
+            for task in workflow["tasks"]
+        ]
+
+        expected_ids = list(
+            range(1, len(task_ids) + 1)
+        )
+
+        self.assertEqual(
+            task_ids,
+            expected_ids,
+        )
+        
 if __name__ == "__main__":
     unittest.main()
