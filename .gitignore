@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Application-generated workflow data
+data/workflows.json
+
+# Python cache files
+__pycache__/
+*.pyc

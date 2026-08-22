@@ -38,11 +38,12 @@ Structured data allows future versions of the application to:
 """
 
 from datetime import date
-
+from storage import save_workflow, count_workflows
 
 # ===========================================================================
 # TASK CREATION
 # ===========================================================================
+
 
 def create_task(task_id, name, category, priority="Medium"):
     """
@@ -89,6 +90,7 @@ def create_task(task_id, name, category, priority="Medium"):
 # ===========================================================================
 # WORKFLOW ANALYSIS
 # ===========================================================================
+
 
 def analyze_request(request):
     """
@@ -275,6 +277,7 @@ def analyze_request(request):
 # WORKFLOW METRICS
 # ===========================================================================
 
+
 def calculate_progress(workflow):
     """
     Calculate workflow completion percentage.
@@ -303,9 +306,7 @@ def calculate_progress(workflow):
         return 0
 
     completed_tasks = sum(
-        1
-        for task in workflow["tasks"]
-        if task["status"] == "Completed"
+        1 for task in workflow["tasks"] if task["status"] == "Completed"
     )
 
     return round((completed_tasks / total_tasks) * 100)
@@ -314,6 +315,7 @@ def calculate_progress(workflow):
 # ===========================================================================
 # NEXT ACTION LOGIC
 # ===========================================================================
+
 
 def determine_next_action(workflow):
     """
@@ -342,9 +344,7 @@ def determine_next_action(workflow):
     }
 
     incomplete_tasks = [
-        task
-        for task in workflow["tasks"]
-        if task["status"] != "Completed"
+        task for task in workflow["tasks"] if task["status"] != "Completed"
     ]
 
     if not incomplete_tasks:
@@ -369,6 +369,7 @@ def determine_next_action(workflow):
 # ===========================================================================
 # WORKFLOW DISPLAY
 # ===========================================================================
+
 
 def display_workflow(workflow):
     """
@@ -418,10 +419,7 @@ def display_workflow(workflow):
 
     if next_task:
 
-        print(
-            f"TASK {next_task['id']:03} - "
-            f"{next_task['task']}"
-        )
+        print(f"TASK {next_task['id']:03} - " f"{next_task['task']}")
 
         print(f"Priority: {next_task['priority']}")
 
@@ -436,6 +434,7 @@ def display_workflow(workflow):
 # APPLICATION ENTRY POINT
 # ===========================================================================
 
+
 def main():
     """
     Run the command-line application.
@@ -447,21 +446,15 @@ def main():
     print("AI Operations Assistant")
     print("-" * 60)
 
-    print(
-        "Transform operational requests into structured workflows.\n"
-    )
+    print("Transform operational requests into structured workflows.\n")
 
     try:
-
-        request = input(
-            "Describe the work that needs to be completed:\n> "
-        )
+        request = input("Describe the work that needs to be completed:\n> ")
 
         if not request.strip():
             raise ValueError("No request entered.")
 
     except (OSError, EOFError, ValueError):
-
         print(
             "\nInteractive input is unavailable."
             "\nRunning demonstration workflow instead.\n"
@@ -477,12 +470,17 @@ def main():
         print(request)
 
     # Generate the structured workflow.
-
     workflow = analyze_request(request)
 
-    # Display the results.
-
+    # Display the workflow before saving it.
     display_workflow(workflow)
+
+    # Persist the workflow so it remains available after the
+    # application closes.
+    save_workflow(workflow)
+
+    print("\nWorkflow saved successfully.")
+    print(f"Total saved workflows: {count_workflows()}")
 
 
 # ===========================================================================
@@ -491,3 +489,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
