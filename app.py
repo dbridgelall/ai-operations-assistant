@@ -1,37 +1,45 @@
 """
 AI Operations Assistant
-Version 1.0 - Rule-Based Workflow Generator
+Version 1.1 - Rule-Based Workflow Generator
 
-Purpose:
-    This application demonstrates how an unstructured operational request
-    can be converted into a structured workflow.
+PURPOSE
+-------
+This application demonstrates how an unstructured operational request
+can be converted into a structured workflow.
 
-Current Architecture:
-    User Request
-        ↓
-    Text Normalization
-        ↓
-    Rule-Based Task Detection
-        ↓
-    Structured Workflow Dictionary
-        ↓
-    Terminal Output
+CURRENT ARCHITECTURE
+--------------------
+User Request
+    ↓
+Text Normalization
+    ↓
+Rule-Based Task Detection
+    ↓
+Structured Workflow Dictionary
+    ↓
+Terminal Output
 
-Why start with rules instead of AI?
-    Before introducing an LLM or external API, this version establishes
-    the application's core workflow logic. This makes the system easier
-    to understand, test, and improve.
+WHY START WITH RULES INSTEAD OF AI?
+-----------------------------------
+Before introducing an LLM or external API, this version establishes
+the application's core workflow logic.
 
-Future versions will replace or supplement the rule-based analysis with
-AI-powered request interpretation.
+This makes the application easier to:
+- Understand
+- Test
+- Debug
+- Expand
+
+Future versions can supplement or replace these rules with
+AI-powered natural-language interpretation.
 """
 
 from datetime import date
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # WORKFLOW ANALYSIS
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 def analyze_request(request):
     """
@@ -51,46 +59,58 @@ def analyze_request(request):
         - workflow status
         - generated tasks
 
-    Process
-    -------
-    1. Normalize the user's text.
-    2. Search for operational keywords.
-    3. Match those keywords to predefined actions.
-    4. Store the resulting tasks in a list.
-    5. Package everything into a structured dictionary.
-
     Example
     -------
     Input:
         "Schedule candidate interviews and track confirmations."
 
     Generated tasks:
-        - Create interview schedule
-        - Track candidate status
-        - Send and track confirmations
+        1. Create interview schedule
+        2. Track candidate status
+        3. Send and track confirmations
+        4. Review workflow and determine next action
     """
 
-    # Convert the request to lowercase.
+    # -----------------------------------------------------------------------
+    # STEP 1: NORMALIZE USER INPUT
+    # -----------------------------------------------------------------------
     #
-    # This allows keyword matching to work regardless of capitalization.
-    # For example, "Interview", "INTERVIEW", and "interview" will all match.
+    # Converting the request to lowercase makes keyword detection
+    # case-insensitive.
+    #
+    # For example:
+    # "Interview", "INTERVIEW", and "interview"
+    # will all be interpreted the same way.
+
     request_lower = request.lower()
 
-    # This list will hold each task detected from the user's request.
+    # This list will contain the operational tasks detected by the engine.
     tasks = []
 
     # -----------------------------------------------------------------------
-    # RULE-BASED TASK DETECTION
+    # STEP 2: RULE-BASED TASK DETECTION
     # -----------------------------------------------------------------------
     #
-    # Version 1 uses simple keyword rules.
+    # Version 1 uses simple keyword matching.
     #
-    # These rules establish the basic relationship:
+    # The basic relationship is:
     #
-    #     user language → operational meaning → structured task
+    # USER LANGUAGE
+    #       ↓
+    # KEYWORD DETECTION
+    #       ↓
+    # OPERATIONAL TASK
     #
-    # Later versions can use an LLM to understand context instead of relying
-    # exclusively on exact keywords.
+    # Example:
+    #
+    # "We need to interview candidates."
+    #
+    #           ↓ detects "interview"
+    #
+    # "Create interview schedule"
+    #
+    # Future versions will use AI to understand context instead of
+    # relying exclusively on predefined keywords.
 
     if "interview" in request_lower:
         tasks.append("Create interview schedule")
@@ -104,29 +124,58 @@ def analyze_request(request):
     if "committee" in request_lower:
         tasks.append("Prepare committee update")
 
-    # Every operational workflow should end with some form of review.
+    if "schedule" in request_lower:
+        tasks.append("Review scheduling requirements")
+
+    if "email" in request_lower:
+        tasks.append("Prepare required email communication")
+
+    if "report" in request_lower:
+        tasks.append("Prepare operational report")
+
+    if "document" in request_lower:
+        tasks.append("Prepare or review documentation")
+
+    # -----------------------------------------------------------------------
+    # STEP 3: DEFAULT REVIEW TASK
+    # -----------------------------------------------------------------------
     #
-    # Including a default review task also ensures that the workflow is never
-    # completely empty when the program does not recognize any keywords.
+    # Every workflow ends with a review step.
+    #
+    # This also ensures the workflow contains at least one task even when
+    # the rule engine does not recognize any keywords.
+
     tasks.append("Review workflow and determine next action")
 
     # -----------------------------------------------------------------------
-    # STRUCTURED WORKFLOW
+    # STEP 4: BUILD STRUCTURED WORKFLOW DATA
     # -----------------------------------------------------------------------
     #
-    # Instead of returning only a list of tasks, we organize the information
-    # into a Python dictionary.
+    # Instead of returning only a list of tasks, the application stores
+    # workflow information inside a Python dictionary.
     #
-    # This is important because future versions can easily add fields such as:
+    # Current structure:
     #
+    # workflow
+    # ├── request
+    # ├── created
+    # ├── status
+    # └── tasks
+    #
+    # This structure makes future expansion easier.
+    #
+    # Future versions can add:
+    #
+    # - workflow ID
     # - priority
-    # - owner
+    # - task owner
     # - due date
-    # - task ID
-    # - completion status
+    # - task status
+    # - dependencies
+    # - completion percentage
     #
-    # The dictionary could also later be converted to JSON and stored in a
-    # database or sent through an API.
+    # The dictionary can also later be converted into JSON for APIs,
+    # databases, or web applications.
 
     workflow = {
         "request": request,
@@ -138,103 +187,198 @@ def analyze_request(request):
     return workflow
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # WORKFLOW DISPLAY
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 def display_workflow(workflow):
     """
-    Display a structured workflow in a readable terminal format.
+    Display workflow information in a readable terminal format.
 
-    Keeping display logic separate from workflow analysis is intentional.
+    DESIGN DECISION
+    ---------------
+    Workflow analysis and workflow presentation are deliberately
+    separated.
 
-    The analyze_request() function determines WHAT the workflow contains.
+    analyze_request()
+        Determines WHAT the workflow contains.
 
-    The display_workflow() function determines HOW that workflow is shown.
+    display_workflow()
+        Determines HOW the workflow is presented.
 
-    This separation will make it easier to replace the terminal interface
-    with a web application later without rebuilding the workflow engine.
+    This separation will allow a future web interface to use the same
+    workflow engine without rewriting the underlying analysis logic.
     """
 
     print("\nAI OPERATIONS ASSISTANT")
-    print("=" * 40)
+    print("=" * 50)
 
-    # Display workflow metadata.
+    # -----------------------------------------------------------------------
+    # WORKFLOW METADATA
+    # -----------------------------------------------------------------------
+
     print(f"\nRequest: {workflow['request']}")
     print(f"Created: {workflow['created']}")
     print(f"Status: {workflow['status']}")
 
-    print("\nTasks")
-    print("-" * 40)
+    # -----------------------------------------------------------------------
+    # GENERATED TASKS
+    # -----------------------------------------------------------------------
 
-    # enumerate() gives each task a number while looping through the list.
+    print("\nGenerated Tasks")
+    print("-" * 50)
+
+    # enumerate() provides both:
     #
-    # start=1 makes the numbering user-friendly:
+    # - the task itself
+    # - a sequential task number
     #
-    # 1. First task
-    # 2. Second task
-    #
-    # instead of Python's normal zero-based numbering.
+    # start=1 creates user-friendly numbering beginning at 1 rather than 0.
 
     for number, task in enumerate(workflow["tasks"], start=1):
         print(f"{number}. {task}")
 
-    # For Version 1, the first generated task becomes the recommended
-    # next action.
+    # -----------------------------------------------------------------------
+    # NEXT ACTION
+    # -----------------------------------------------------------------------
     #
-    # Future versions will calculate the next action using priority,
-    # deadlines, dependencies, and workflow status.
+    # Version 1 considers the first generated task the next action.
+    #
+    # Later versions can determine this using:
+    #
+    # - priority
+    # - deadlines
+    # - dependencies
+    # - workflow status
+    # - AI recommendations
 
     print("\nNext Action")
-    print("-" * 40)
+    print("-" * 50)
+
     print(workflow["tasks"][0])
 
+    print("\n" + "=" * 50)
 
-# ---------------------------------------------------------------------------
+
+# ===========================================================================
 # APPLICATION ENTRY POINT
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 def main():
     """
     Run the command-line version of the AI Operations Assistant.
 
-    Application flow:
+    APPLICATION FLOW
+    ----------------
 
-        1. Ask the user for an operational request.
-        2. Send the request to the workflow analyzer.
-        3. Receive structured workflow data.
-        4. Display the generated workflow.
+    1. Start application
+            ↓
+    2. Request operational work description
+            ↓
+    3. Analyze request
+            ↓
+    4. Generate structured workflow
+            ↓
+    5. Display workflow
+
+    ENVIRONMENT HANDLING
+    --------------------
+    A normal terminal supports Python's input() function.
+
+    Some browser-based or cloud execution environments do not.
+
+    If interactive input is unavailable, the application automatically
+    switches to demonstration mode instead of crashing.
     """
 
     print("AI Operations Assistant")
+    print("-" * 50)
     print("Turn an operational request into an organized workflow.\n")
 
-    # input() pauses the program and waits for the user to enter a request.
-    request = input(
-        "Describe the work that needs to be completed:\n> "
-    )
+    try:
 
-    # Convert the user's request into structured workflow data.
+        # -------------------------------------------------------------------
+        # INTERACTIVE MODE
+        # -------------------------------------------------------------------
+        #
+        # input() pauses execution and waits for the user to enter an
+        # operational request.
+
+        request = input(
+            "Describe the work that needs to be completed:\n> "
+        )
+
+        # strip() removes whitespace from the beginning and end.
+        #
+        # If nothing meaningful was entered, we treat the request as empty.
+
+        if not request.strip():
+            raise ValueError("No operational request was entered.")
+
+    except (OSError, EOFError, ValueError):
+
+        # -------------------------------------------------------------------
+        # DEMONSTRATION MODE
+        # -------------------------------------------------------------------
+        #
+        # Some execution environments cannot provide interactive keyboard
+        # input.
+        #
+        # Instead of terminating the application, we provide a realistic
+        # example request so the workflow engine can still be demonstrated.
+
+        print(
+            "\nInteractive input is unavailable."
+            "\nRunning demonstration workflow instead.\n"
+        )
+
+        request = (
+            "Coordinate interviews with five candidates, "
+            "track confirmations, and prepare an update "
+            "for the hiring committee."
+        )
+
+        print("Demo Request:")
+        print(request)
+        print()
+
+    # -----------------------------------------------------------------------
+    # PROCESS REQUEST
+    # -----------------------------------------------------------------------
+
     workflow = analyze_request(request)
 
-    # Present the resulting workflow to the user.
+    # -----------------------------------------------------------------------
+    # DISPLAY RESULT
+    # -----------------------------------------------------------------------
+
     display_workflow(workflow)
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # PROGRAM START
-# ---------------------------------------------------------------------------
+# ===========================================================================
 #
 # Python files can either:
 #
 # 1. Be executed directly.
 # 2. Be imported into another Python program.
 #
-# This condition ensures main() runs only when this file is executed directly.
+# __name__ contains information about how Python loaded this file.
 #
-# That's useful later because we'll be able to import analyze_request()
-# into a web application or test file without automatically starting the
-# command-line interface.
+# When this file is executed directly:
+#
+#     __name__ == "__main__"
+#
+# Therefore the following condition starts the application only when
+# app.py itself is executed.
+#
+# This becomes important later because another file will be able to:
+#
+#     from app import analyze_request
+#
+# without automatically launching the command-line program.
+
 
 if __name__ == "__main__":
     main()
