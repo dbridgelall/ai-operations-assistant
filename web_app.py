@@ -208,6 +208,45 @@ def workflow_details(workflow_id):
         workflow=workflow,
         progress=progress,
     )
+# ===========================================================================
+# START TASK ROUTE
+# ===========================================================================
+
+@app.route(
+    "/workflows/<workflow_id>/tasks/<int:task_id>/start",
+    methods=["POST"],
+)
+def start_task(workflow_id, task_id):
+    """
+    Mark one workflow task as in progress.
+    """
+
+    workflow = get_workflow(workflow_id.upper())
+
+    if workflow is None:
+        return "Workflow not found.", 404
+
+    selected_task = None
+
+    for task in workflow["tasks"]:
+        if task["id"] == task_id:
+            selected_task = task
+            break
+
+    if selected_task is None:
+        return "Task not found.", 404
+
+    selected_task["status"] = "In Progress"
+    workflow["status"] = "Active"
+
+    update_workflow(workflow)
+
+    return redirect(
+        url_for(
+            "workflow_details",
+            workflow_id=workflow["id"],
+        )
+    )
 
 # ===========================================================================
 # COMPLETE TASK ROUTE
