@@ -119,7 +119,7 @@ def generate_workflow_id():
 # ===========================================================================
 
 
-def analyze_request(request):
+def analyze_request_with_rules(request):
     """
     Convert a plain-English operational request into structured tasks.
 
@@ -262,6 +262,26 @@ def analyze_request(request):
 
     return workflow
 
+def analyze_request(request, engine="rules"):
+    """
+    Analyze an operational request using the selected workflow engine.
+
+    Parameters
+    ----------
+    request : str
+        Plain-English operational request.
+
+    engine : str
+        Workflow generation engine to use.
+        Currently supported: "rules".
+    """
+
+    if engine == "rules":
+        return analyze_request_with_rules(request)
+
+    raise ValueError(
+        f"Unsupported workflow engine: {engine}"
+    )
 
 # ===========================================================================
 # WORKFLOW PROGRESS

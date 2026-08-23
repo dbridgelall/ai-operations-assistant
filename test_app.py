@@ -126,6 +126,14 @@ class TestRequestAnalysis(unittest.TestCase):
             task_names,
         )
 
+    def test_unknown_engine_raises_error(self):
+        """Unsupported workflow engines should raise a clear error."""
+
+        with self.assertRaises(ValueError):
+            analyze_request(
+                "Create a workflow.",
+                engine="unknown",
+            )
 
 # ===========================================================================
 # PRIORITY TESTS
