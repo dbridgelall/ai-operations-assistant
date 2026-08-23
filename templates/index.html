@@ -142,7 +142,11 @@
                 route that creates workflows through the existing engine.
             -->
 
-            <form class="workflow-form">
+            <form
+            class="workflow-form"
+            action="{{ url_for('create_workflow') }}"
+            method="POST"
+            >
 
                 <label for="request">
                     Operational Request
@@ -153,6 +157,7 @@
                     id="request"
                     name="request"
                     rows="6"
+                    required
                     placeholder="Example: Coordinate interviews with five candidates, send confirmation emails, and prepare an update for the hiring committee."
                 ></textarea>
 

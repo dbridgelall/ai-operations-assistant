@@ -1,34 +1,38 @@
 """
 AI Operations Assistant
-Version 2.1 - Data-Connected Flask Dashboard
+Version 2.2 - Web Workflow Creation
 
 PURPOSE
 -------
-Provide a browser-based dashboard for the AI Operations Assistant.
+Provide a browser-based interface for creating and reviewing
+operational workflows.
 
-Version 2.1 connects the Flask presentation layer to the application's
-persistent workflow storage.
+Version 2.2 connects the dashboard form to the existing Python
+workflow engine.
 
 DATA FLOW
 ---------
-workflows.json
-      ↓
-storage.py
-      ↓
-web_app.py
-      ↓
-Jinja template
-      ↓
-Browser
-
-The dashboard can now display real workflow information instead of
-hard-coded placeholder values.
+User enters operational request
+            ↓
+HTML form sends POST request
+            ↓
+Flask receives request
+            ↓
+analyze_request()
+            ↓
+Structured workflow generated
+            ↓
+save_workflow()
+            ↓
+JSON persistence
+            ↓
+Browser redirected to dashboard
 """
 
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, request, url_for
 
-from app import calculate_progress
-from storage import load_workflows
+from app import analyze_request, calculate_progress
+from storage import load_workflows, save_workflow
 
 
 # ===========================================================================
@@ -45,24 +49,12 @@ app = Flask(__name__)
 
 def build_dashboard_data():
     """
-    Build the data required by the dashboard.
+    Build dashboard metrics and workflow summaries.
 
-    Returns
-    -------
-    dict
-        Dashboard information including:
-        - total workflow count
-        - active workflow count
-        - completed workflow count
-        - workflow summaries
+    Presentation-specific data is calculated here rather than inside
+    the HTML template.
 
-    DESIGN DECISION
-    ---------------
-    Dashboard calculations are performed in Python rather than HTML.
-
-    The template's responsibility is presentation.
-
-    Python's responsibility is application logic.
+    This keeps business logic in Python and presentation logic in HTML.
     """
 
     workflows = load_workflows()
@@ -76,12 +68,6 @@ def build_dashboard_data():
     completed_workflows = sum(
         1 for workflow in workflows if workflow["status"] == "Completed"
     )
-
-    # Add progress information to each workflow summary.
-    #
-    # We create new dictionaries rather than modifying the stored workflow
-    # objects directly. This keeps dashboard presentation data separate
-    # from persisted application data.
 
     workflow_summaries = []
 
@@ -97,7 +83,7 @@ def build_dashboard_data():
 
         workflow_summaries.append(summary)
 
-    # Show newest workflows first.
+    # Newest workflows appear first.
     workflow_summaries.reverse()
 
     return {
@@ -109,22 +95,14 @@ def build_dashboard_data():
 
 
 # ===========================================================================
-# HOME ROUTE
+# DASHBOARD ROUTE
 # ===========================================================================
 
 
 @app.route("/")
 def home():
     """
-    Render the dashboard using real application data.
-
-    Flask passes the dashboard dictionary into Jinja.
-
-    The template can access values such as:
-
-        dashboard.total
-        dashboard.active
-        dashboard.workflows
+    Display the workflow dashboard.
     """
 
     dashboard = build_dashboard_data()
@@ -133,6 +111,60 @@ def home():
         "index.html",
         dashboard=dashboard,
     )
+
+
+# ===========================================================================
+# CREATE WORKFLOW ROUTE
+# ===========================================================================
+
+
+@app.route("/workflows", methods=["POST"])
+def create_workflow():
+    """
+    Create a workflow from a browser form submission.
+
+    HTTP POST
+    ---------
+    POST is used when the browser sends data that changes application
+    state.
+
+    In this case, submitting the form creates and stores a new workflow.
+
+    PROCESS
+    -------
+    1. Read the request field from the HTML form.
+    2. Remove unnecessary surrounding whitespace.
+    3. Reject empty submissions.
+    4. Send valid text through the existing workflow engine.
+    5. Save the generated workflow.
+    6. Redirect the browser back to the dashboard.
+
+    WHY REDIRECT?
+    -------------
+    Redirecting after a successful POST implements the common
+    Post/Redirect/Get pattern.
+
+    This prevents a browser refresh from accidentally submitting the
+    same workflow twice.
+    """
+
+    operational_request = request.form.get(
+        "request",
+        "",
+    ).strip()
+
+    # Empty submissions do not create workflows.
+    if not operational_request:
+        return redirect(url_for("home"))
+
+    # Reuse the workflow engine originally built for the CLI.
+    workflow = analyze_request(operational_request)
+
+    # Persist the generated workflow.
+    save_workflow(workflow)
+
+    # Return the user to the updated dashboard.
+    return redirect(url_for("home"))
 
 
 # ===========================================================================
