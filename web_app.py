@@ -32,7 +32,12 @@ Browser redirected to dashboard
 from flask import Flask, redirect, render_template, request, url_for
 
 from app import analyze_request, calculate_progress
-from storage import load_workflows, save_workflow
+from storage import (
+    get_workflow,
+    load_workflows,
+    save_workflow,
+    update_workflow,
+)
 
 
 # ===========================================================================
@@ -166,6 +171,91 @@ def create_workflow():
     # Return the user to the updated dashboard.
     return redirect(url_for("home"))
 
+# ===========================================================================
+# WORKFLOW DETAILS ROUTE
+# ===========================================================================
+
+
+@app.route("/workflows/<workflow_id>")
+def workflow_details(workflow_id):
+    """
+    Display the complete details of one workflow.
+
+    DYNAMIC ROUTES
+    --------------
+    The <workflow_id> portion of the URL is dynamic.
+
+    For example:
+
+        /workflows/WF-001
+        /workflows/WF-002
+
+    Flask extracts the workflow ID from the URL and passes it into
+    this function.
+
+    The storage layer then retrieves the matching workflow.
+    """
+
+    workflow = get_workflow(workflow_id.upper())
+
+    if workflow is None:
+        return "Workflow not found.", 404
+
+    progress = calculate_progress(workflow)
+
+    return render_template(
+        "workflow.html",
+        workflow=workflow,
+        progress=progress,
+    )
+
+# ===========================================================================
+# COMPLETE TASK ROUTE
+# ===========================================================================
+
+
+@app.route(
+    "/workflows/<workflow_id>/tasks/<int:task_id>/complete",
+    methods=["POST"],
+)
+def complete_task(workflow_id, task_id):
+    """
+    Mark one workflow task as completed.
+    """
+
+    workflow = get_workflow(workflow_id.upper())
+
+    if workflow is None:
+        return "Workflow not found.", 404
+
+    selected_task = None
+
+    for task in workflow["tasks"]:
+        if task["id"] == task_id:
+            selected_task = task
+            break
+
+    if selected_task is None:
+        return "Task not found.", 404
+
+    selected_task["status"] = "Completed"
+
+    if all(
+        task["status"] == "Completed"
+        for task in workflow["tasks"]
+    ):
+        workflow["status"] = "Completed"
+    else:
+        workflow["status"] = "Active"
+
+    update_workflow(workflow)
+
+    return redirect(
+        url_for(
+            "workflow_details",
+            workflow_id=workflow["id"],
+        )
+    )
 
 # ===========================================================================
 # APPLICATION START

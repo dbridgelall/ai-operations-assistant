@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {{ workflow.id }} | AI Operations Assistant
+    </title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+
+    <!-- ================================================================
+         APPLICATION HEADER
+         ================================================================ -->
+
+    <header class="app-header">
+
+        <div class="header-content">
+
+            <div>
+
+                <p class="eyebrow">
+                    WORKFLOW DETAILS
+                </p>
+
+                <h1>
+                    {{ workflow.id }}
+                </h1>
+
+                <p class="subtitle">
+                    Review tasks, priorities, and workflow progress.
+                </p>
+
+            </div>
+
+
+            <a class="back-link" href="{{ url_for('home') }}">
+                ← Dashboard
+            </a>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================================================================
+         WORKFLOW
+         ================================================================ -->
+
+    <main class="dashboard">
+
+
+        <!-- WORKFLOW SUMMARY -->
+
+        <section class="panel">
+
+
+            <div class="workflow-detail-header">
+
+
+                <div>
+
+                    <p class="section-label">
+                        OPERATIONAL REQUEST
+                    </p>
+
+                    <h2>
+                        {{ workflow.request }}
+                    </h2>
+
+                </div>
+
+
+                <span class="workflow-status
+                    {% if workflow.status == 'Completed' %}
+                        status-completed
+                    {% else %}
+                        status-active
+                    {% endif %}
+                    ">
+
+                    {{ workflow.status }}
+
+                </span>
+
+
+            </div>
+
+
+            <div class="detail-metrics">
+
+
+                <div>
+
+                    <span class="detail-label">
+                        Created
+                    </span>
+
+                    <strong>
+                        {{ workflow.created }}
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span class="detail-label">
+                        Tasks
+                    </span>
+
+                    <strong>
+                        {{ workflow.tasks | length }}
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span class="detail-label">
+                        Progress
+                    </span>
+
+                    <strong>
+                        {{ progress }}%
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="progress-track large-progress">
+
+                <div class="progress-bar" style="--progress: {{ progress }}%;"></div>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- ============================================================
+             TASKS
+             ============================================================ -->
+
+        <section class="panel">
+
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <p class="section-label">
+                        TASK MANAGEMENT
+                    </p>
+
+                    <h2>
+                        Workflow Tasks
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="task-list">
+
+
+                {% for task in workflow.tasks %}
+
+
+                <article class="task-card">
+
+
+                    <div class="task-number">
+
+                        {{ "%03d" | format(task.id) }}
+
+                    </div>
+
+
+                    <div class="task-content">
+
+
+                        <div class="task-heading">
+
+
+                            <div>
+
+                                <h3>
+                                    {{ task.task }}
+                                </h3>
+
+
+                                <p>
+                                    {{ task.category }}
+                                </p>
+
+                            </div>
+
+
+                            <span class="priority-badge
+                                    priority-{{ task.priority | lower }}">
+
+                                {{ task.priority }}
+
+                            </span>
+
+
+                        </div>
+
+
+                        <div class="task-meta">
+
+
+                            <span>
+                                Owner:
+                                <strong>
+                                    {{ task.owner }}
+                                </strong>
+                            </span>
+
+
+                            <span>
+                                Status:
+                                <strong>
+                                    {{ task.status }}
+                                </strong>
+                            </span>
+                            {% if task.status != 'Completed' %}
+
+                                <form
+                                    action="{{ url_for('complete_task', workflow_id=workflow.id, task_id=task.id) }}"
+                                    method="POST"
+                                >
+                                    <button type="submit">
+                                        Mark Complete
+                                    </button>
+                                </form>
+
+                            {% endif %}
+                            
+                        </div>
+
+
+                    </div>
+
+
+                </article>
+
+
+                {% endfor %}
+
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            AI Operations Assistant • Python + Flask
+        </p>
+
+    </footer>
+
+
+</body>
+
+</html>
