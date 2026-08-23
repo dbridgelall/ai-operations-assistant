@@ -283,16 +283,22 @@
                             <!-- PROGRESS BAR -->
 
                             <div class="progress-track">
-
                                 <div
                                     class="progress-bar"
-                                    data-progress="{{ workflow.progress | int }}"
+                                    style="--progress: {{ workflow.progress | int }}%;"
                                 ></div>
 
                             </div>
 
                             <div class="workflow-meta">
-
+                                <div class="workflow-actions">
+                                    <a
+                                        href="{{ url_for('workflow_details', workflow_id=workflow.id) }}"
+                                        class="view-workflow"
+                                    >
+                                        View Workflow →
+                                    </a>
+                                </div>
                                 <span>
                                     {{ workflow.task_count }} tasks
                                 </span>
