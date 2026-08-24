@@ -262,22 +262,63 @@ def analyze_request_with_rules(request):
 
     return workflow
 
+def analyze_request_with_ai(request):
+    """
+    Analyze an operational request using the AI workflow engine.
+
+    The external AI service will eventually determine the tasks.
+    For now, this function establishes the standardized workflow
+    structure expected from AI-generated workflows.
+    """
+
+    ai_tasks = [
+        {
+            "task": "Analyze operational request",
+            "category": "AI Analysis",
+            "priority": "High",
+        }
+    ]
+
+    tasks = []
+
+    for task_id, ai_task in enumerate(ai_tasks, start=1):
+        tasks.append(
+            create_task(
+                task_id,
+                ai_task["task"],
+                ai_task["category"],
+                ai_task["priority"],
+            )
+        )
+
+    workflow = {
+        "id": generate_workflow_id(),
+        "request": request,
+        "created": str(date.today()),
+        "status": "Active",
+        "tasks": tasks,
+    }
+
+    return workflow
+
 def analyze_request(request, engine="rules"):
     """
     Analyze an operational request using the selected workflow engine.
 
-    Parameters
-    ----------
-    request : str
-        Plain-English operational request.
+    Supported engines
+    -----------------
+    rules
+        Deterministic keyword-based workflow generation.
 
-    engine : str
-        Workflow generation engine to use.
-        Currently supported: "rules".
+    ai
+        AI-powered workflow generation.
     """
 
     if engine == "rules":
         return analyze_request_with_rules(request)
+
+    if engine == "ai":
+        return analyze_request_with_ai(request)
 
     raise ValueError(
         f"Unsupported workflow engine: {engine}"

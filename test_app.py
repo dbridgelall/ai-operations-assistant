@@ -135,6 +135,51 @@ class TestRequestAnalysis(unittest.TestCase):
                 engine="unknown",
             )
 
+    def test_ai_engine_generates_standard_workflow(self):
+        """AI workflows should use the standard application structure."""
+
+        workflow = analyze_request(
+            "Coordinate onboarding for three new employees.",
+            engine="ai",
+        )
+
+        self.assertEqual(
+            workflow["request"],
+            "Coordinate onboarding for three new employees.",
+        )
+
+        self.assertEqual(
+            workflow["status"],
+            "Active",
+        )
+
+        self.assertEqual(
+            len(workflow["tasks"]),
+            1,
+        )
+
+        task = workflow["tasks"][0]
+
+        self.assertEqual(
+            task["task"],
+            "Analyze operational request",
+        )
+
+        self.assertEqual(
+            task["category"],
+            "AI Analysis",
+        )
+
+        self.assertEqual(
+            task["priority"],
+            "High",
+        )
+
+        self.assertEqual(
+            task["status"],
+            "Not Started",
+        ) 
+
 # ===========================================================================
 # PRIORITY TESTS
 # ===========================================================================

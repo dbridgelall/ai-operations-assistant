@@ -221,5 +221,7 @@ __marimo__/
 data/workflows.json
 
 # Python cache files
+.env
 __pycache__/
 *.pyc
+
