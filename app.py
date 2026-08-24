@@ -1,38 +1,41 @@
 """
 AI Operations Assistant
-Version 1.5 - Interactive Workflow Manager
+Core Workflow Engine
 
 PURPOSE
 -------
-Transform plain-English operational requests into structured workflows
-that can be saved, reviewed, and updated.
+Transform plain-English operational requests into structured,
+prioritized, and trackable workflows.
 
-VERSION 1.5
------------
-This version introduces an interactive application menu.
+WORKFLOW ENGINES
+----------------
+Rules Engine
+    Uses deterministic keyword-based rules to generate predictable
+    operational tasks.
 
-Users can now:
-
-1. Create workflows
-2. View saved workflows
-3. Inspect workflow details
-4. Update task statuses
-5. Track workflow progress
+Local AI Engine
+    Uses Qwen through Ollama to interpret operational requests and
+    generate structured tasks locally.
 
 ARCHITECTURE
 ------------
-User
-  ↓
-Command-Line Interface
-  ↓
+User Request
+    |
+    v
 Workflow Engine
-  ↓
-Structured Task Data
-  ↓
-JSON Persistence Layer
-
-Future versions can replace the command-line interface with a web UI
-while preserving the workflow and storage layers.
+    |
+    +-- Rules Engine
+    |
+    +-- Local AI (Ollama / Qwen)
+    |
+    v
+Validated Task Data
+    |
+    v
+Workflow Management
+    |
+    v
+JSON Persistence
 """
 
 import json
@@ -130,10 +133,8 @@ def analyze_request_with_rules(request):
     """
     Convert a plain-English operational request into structured tasks.
 
-    Version 1.5 continues to use deterministic keyword rules.
-
-    This provides a predictable workflow engine before AI interpretation
-    is introduced in a later version.
+    The rules engine provides predictable workflow generation without
+    requiring a local AI model.
     """
 
     request_lower = request.lower()

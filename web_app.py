@@ -1,32 +1,33 @@
 """
 AI Operations Assistant
-Version 2.2 - Web Workflow Creation
+Flask Web Application
 
 PURPOSE
 -------
-Provide a browser-based interface for creating and reviewing
-operational workflows.
+Provide a browser-based interface for creating, reviewing, and
+managing operational workflows.
 
-Version 2.2 connects the dashboard form to the existing Python
-workflow engine.
+Users can select either the deterministic Rules Engine or the Local AI
+Engine, generate workflows, update task statuses, and track progress.
 
 DATA FLOW
 ---------
-User enters operational request
-            ↓
-HTML form sends POST request
-            ↓
-Flask receives request
-            ↓
-analyze_request()
-            ↓
-Structured workflow generated
-            ↓
-save_workflow()
-            ↓
-JSON persistence
-            ↓
-Browser redirected to dashboard
+User
+  |
+  v
+Flask Web Interface
+  |
+  v
+Selected Workflow Engine
+  |
+  v
+Structured Workflow
+  |
+  v
+JSON Persistence
+  |
+  v
+Dashboard and Task Management
 """
 
 from flask import Flask, redirect, render_template, request, url_for
