@@ -31,6 +31,7 @@ import unittest
 from unittest.mock import patch
 
 from app import (
+    AIWorkflowError,
     analyze_request,
     calculate_progress,
     create_task,
@@ -220,6 +221,48 @@ class TestRequestAnalysis(unittest.TestCase):
         )
 
         mock_chat.assert_called_once()
+
+    @patch("app.ollama.chat")
+    def test_ai_engine_rejects_invalid_json(self, mock_chat):
+        """Invalid AI output should raise a controlled workflow error."""
+
+        mock_chat.return_value = {
+            "message": {
+                "content": "This is not valid JSON"
+            }
+        }
+
+        with self.assertRaises(AIWorkflowError):
+            analyze_request(
+                "Create an onboarding workflow.",
+                engine="ai",
+            )
+
+    @patch("app.ollama.chat")
+    def test_ai_engine_rejects_too_few_tasks(self, mock_chat):
+        """AI workflows with fewer than two tasks should be rejected."""
+
+        mock_chat.return_value = {
+            "message": {
+                "content": """
+                {
+                    "tasks": [
+                        {
+                            "task": "Complete onboarding",
+                            "category": "Onboarding",
+                            "priority": "High"
+                        }
+                    ]
+                }
+                """
+            }
+        }
+
+        with self.assertRaises(AIWorkflowError):
+            analyze_request(
+                "Create an onboarding workflow.",
+                engine="ai",
+            )
 
 # ===========================================================================
 # PRIORITY TESTS

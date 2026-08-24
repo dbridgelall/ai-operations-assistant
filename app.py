@@ -48,6 +48,10 @@ from storage import (
     update_workflow,
 )
 
+class AIWorkflowError(Exception):
+    """Raised when the local AI engine cannot generate a valid workflow."""
+
+    pass
 
 # ===========================================================================
 # TASK CREATION
@@ -314,29 +318,35 @@ def analyze_request_with_ai(request):
     - Do not include explanations outside the JSON.
     """
 
-    response = ollama.chat(
-    model="qwen3:1.7b",
-    messages=[
-        {
-            "role": "user",
-            "content": prompt,
-        }
-    ],
-    format="json",
-    options={
-        "temperature": 0,
-    },
-)
+    try:
+        response = ollama.chat(
+            model="qwen3:1.7b",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            format="json",
+            options={
+                "temperature": 0,
+            },
+        )
 
-    ai_data = json.loads(
-        response["message"]["content"]
-    )
+        ai_data = json.loads(
+            response["message"]["content"]
+        )
 
-    ai_tasks = ai_data["tasks"]
+        ai_tasks = ai_data["tasks"]
+
+    except (ConnectionError, json.JSONDecodeError, KeyError, TypeError) as error:
+        raise AIWorkflowError(
+            "Local AI could not generate a valid workflow."
+        ) from error
 
     if not 2 <= len(ai_tasks) <= 6:
-        raise ValueError(
-        "AI workflow must contain between 2 and 6 tasks."
+        raise AIWorkflowError(
+    "Local AI must generate between 2 and 6 tasks."
     )
  
     tasks = []
