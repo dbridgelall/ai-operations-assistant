@@ -28,6 +28,7 @@ Automated tests allow us to make changes with greater confidence.
 """
 
 import unittest
+from unittest.mock import patch
 
 from app import (
     analyze_request,
@@ -135,8 +136,30 @@ class TestRequestAnalysis(unittest.TestCase):
                 engine="unknown",
             )
 
-    def test_ai_engine_generates_standard_workflow(self):
-        """AI workflows should use the standard application structure."""
+    @patch("app.ollama.chat")
+    def test_ai_engine_generates_standard_workflow(self, mock_chat):
+        """AI output should be converted into standard application tasks."""
+
+        mock_chat.return_value = {
+            "message": {
+                "content": """
+                {
+                    "tasks": [
+                        {
+                            "task": "Request employee system access",
+                            "category": "IT Operations",
+                            "priority": "High"
+                        },
+                        {
+                            "task": "Schedule employee orientation",
+                            "category": "Onboarding",
+                            "priority": "Medium"
+                        }
+                    ]
+                }
+                """
+            }
+        }
 
         workflow = analyze_request(
             "Coordinate onboarding for three new employees.",
@@ -155,30 +178,48 @@ class TestRequestAnalysis(unittest.TestCase):
 
         self.assertEqual(
             len(workflow["tasks"]),
-            1,
+            2,
         )
 
-        task = workflow["tasks"][0]
+        first_task = workflow["tasks"][0]
+        second_task = workflow["tasks"][1]
 
         self.assertEqual(
-            task["task"],
-            "Analyze operational request",
-        )
-
-        self.assertEqual(
-            task["category"],
-            "AI Analysis",
+            first_task["task"],
+            "Request employee system access",
         )
 
         self.assertEqual(
-            task["priority"],
+            first_task["category"],
+            "IT Operations",
+        )
+
+        self.assertEqual(
+            first_task["priority"],
             "High",
         )
 
         self.assertEqual(
-            task["status"],
+            first_task["status"],
             "Not Started",
-        ) 
+        )
+
+        self.assertEqual(
+            first_task["owner"],
+            "Unassigned",
+        )
+
+        self.assertEqual(
+            second_task["id"],
+            2,
+        )
+
+        self.assertEqual(
+            second_task["task"],
+            "Schedule employee orientation",
+        )
+
+        mock_chat.assert_called_once()
 
 # ===========================================================================
 # PRIORITY TESTS

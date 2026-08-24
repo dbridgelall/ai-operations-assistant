@@ -35,7 +35,10 @@ Future versions can replace the command-line interface with a web UI
 while preserving the workflow and storage layers.
 """
 
+import json
 from datetime import date
+
+import ollama
 
 from storage import (
     count_workflows,
@@ -264,20 +267,60 @@ def analyze_request_with_rules(request):
 
 def analyze_request_with_ai(request):
     """
-    Analyze an operational request using the AI workflow engine.
+    Analyze an operational request using a locally running AI model.
 
-    The external AI service will eventually determine the tasks.
-    For now, this function establishes the standardized workflow
-    structure expected from AI-generated workflows.
+    Ollama handles local model execution while Python validates and
+    converts the generated task data into the application's standard
+    task structure.
     """
 
-    ai_tasks = [
-        {
-            "task": "Analyze operational request",
-            "category": "AI Analysis",
-            "priority": "High",
-        }
+    prompt = f"""
+You are an operations workflow assistant.
+
+Convert the following operational request into a concise list of
+actionable tasks.
+
+Operational request:
+{request}
+
+Return ONLY valid JSON using this exact structure:
+
+{{
+    "tasks": [
+        {{
+            "task": "Task description",
+            "category": "Category",
+            "priority": "High"
+        }}
     ]
+}}
+
+Requirements:
+- Generate between 2 and 6 useful tasks.
+- Tasks must be specific and actionable.
+- Valid priorities are High, Medium, or Low.
+- Do not include task IDs.
+- Do not include task status.
+- Do not include task owners.
+- Do not include explanations outside the JSON.
+"""
+
+    response = ollama.chat(
+        model="qwen3:1.7b",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        format="json",
+    )
+
+    ai_data = json.loads(
+        response["message"]["content"]
+    )
+
+    ai_tasks = ai_data["tasks"]
 
     tasks = []
 
