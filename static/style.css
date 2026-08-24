@@ -239,6 +239,26 @@ h1 {
    FORM
    ======================================================================== */
 
+   /* Error Message */
+
+.error-message {
+    margin-bottom: 20px;
+    padding: 16px 18px;
+
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+}
+
+.error-message strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.error-message p {
+    margin: 0;
+}
+
 .workflow-form label {
     display: block;
 

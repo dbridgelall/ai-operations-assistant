@@ -31,7 +31,12 @@ Browser redirected to dashboard
 
 from flask import Flask, redirect, render_template, request, url_for
 
-from app import analyze_request, calculate_progress
+from app import (
+    AIWorkflowError,
+    analyze_request,
+    calculate_progress,
+    determine_next_action,
+)
 from storage import (
     get_workflow,
     load_workflows,
@@ -166,16 +171,33 @@ def create_workflow():
     if not operational_request:
         return redirect(url_for("home"))
 
-    # Reuse the workflow engine originally built for the CLI.
-    workflow = analyze_request(
-    operational_request,
-    engine=engine,
-)
-    # Persist the generated workflow.
+    try:
+        workflow = analyze_request(
+            operational_request,
+            engine=engine,
+        )
+
+    except AIWorkflowError:
+        dashboard = build_dashboard_data()
+
+        return render_template(
+        "index.html",
+        dashboard=dashboard,
+            error=(
+                "Local AI could not generate this workflow. "
+                "Make sure Ollama is running and try again, "
+                "or use the Rules Engine."
+            ),
+        )
+
     save_workflow(workflow)
 
-    # Return the user to the updated dashboard.
-    return redirect(url_for("home"))
+    return redirect(
+        url_for(
+            "workflow_details",
+            workflow_id=workflow["id"],
+        )
+    )
 
 # ===========================================================================
 # WORKFLOW DETAILS ROUTE

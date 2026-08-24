@@ -129,6 +129,46 @@ class TestWebApp(unittest.TestCase):
         )
 
         mock_save_workflow.assert_called_once()
+        
+    @patch("web_app.save_workflow")
+    @patch("web_app.analyze_request")
+    def test_ai_failure_shows_friendly_error(
+        self,
+        mock_analyze_request,
+        mock_save_workflow,
+    ):
+        """AI failures should return a friendly message without saving."""
+
+        from app import AIWorkflowError
+
+        mock_analyze_request.side_effect = AIWorkflowError(
+            "Local AI failed."
+        )
+
+        response = self.client.post(
+            "/workflows",
+            data={
+                "request": "Create an onboarding workflow.",
+                "engine": "ai",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertIn(
+            b"Workflow generation failed",
+            response.data,
+        )
+
+        self.assertIn(
+            b"Local AI could not generate this workflow",
+            response.data,
+        )
+
+        mock_save_workflow.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()

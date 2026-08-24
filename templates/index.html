@@ -142,11 +142,18 @@
                 route that creates workflows through the existing engine.
             -->
 
+            {% if error %}
+            <div class="error-message">
+                <strong>Workflow generation failed</strong>
+                <p>{{ error }}</p>
+            </div>
+            {% endif %}
+
             <form
-            id="workflow-form"
-            class="workflow-form"
-            action="{{ url_for('create_workflow') }}"
-            method="POST"
+                id="workflow-form"
+                class="workflow-form"
+                action="{{ url_for('create_workflow') }}"
+                method="POST"
             >
 
                 <label for="request">
