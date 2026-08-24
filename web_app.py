@@ -152,10 +152,14 @@ def create_workflow():
     This prevents a browser refresh from accidentally submitting the
     same workflow twice.
     """
-
     operational_request = request.form.get(
         "request",
         "",
+    ).strip()
+
+    engine = request.form.get(
+        "engine",
+        "rules",
     ).strip()
 
     # Empty submissions do not create workflows.
@@ -163,8 +167,10 @@ def create_workflow():
         return redirect(url_for("home"))
 
     # Reuse the workflow engine originally built for the CLI.
-    workflow = analyze_request(operational_request)
-
+    workflow = analyze_request(
+    operational_request,
+    engine=engine,
+)
     # Persist the generated workflow.
     save_workflow(workflow)
 

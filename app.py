@@ -275,46 +275,58 @@ def analyze_request_with_ai(request):
     """
 
     prompt = f"""
-You are an operations workflow assistant.
+    You are an operations workflow assistant.
 
-Convert the following operational request into a concise list of
-actionable tasks.
+    Convert the following operational request into a concise list of
+    actionable tasks.
 
-Operational request:
-{request}
+    Operational request:
+    {request}
 
-Return ONLY valid JSON using this exact structure:
+    Return ONLY valid JSON using this exact structure:
 
-{{
-    "tasks": [
-        {{
-            "task": "Task description",
-            "category": "Category",
-            "priority": "High"
-        }}
-    ]
-}}
+    {{
+        "tasks": [
+            {{
+                "task": "Task description",
+                "category": "Category",
+                "priority": "High"
+            }}
+        ]
+    }}
 
-Requirements:
-- Generate between 2 and 6 useful tasks.
-- Tasks must be specific and actionable.
-- Valid priorities are High, Medium, or Low.
-- Do not include task IDs.
-- Do not include task status.
-- Do not include task owners.
-- Do not include explanations outside the JSON.
-"""
+    Requirements:
+    - Generate between 2 and 6 useful tasks.
+    - Tasks must be specific and actionable.
+    - Valid priorities are High, Medium, or Low.
+
+    Priority rules:
+    - High: blocking, urgent, time-sensitive, or required before other tasks can proceed.
+    - Medium: important work that should be completed soon but does not immediately block the workflow.
+    - Low: follow-up, review, documentation, or non-urgent supporting work.
+    - Prioritize tasks relative to each other.
+    - Do not assign every task the same priority unless the request clearly requires it.
+    - Use High priority sparingly.
+
+    - Do not include task IDs.
+    - Do not include task status.
+    - Do not include task owners.
+    - Do not include explanations outside the JSON.
+    """
 
     response = ollama.chat(
-        model="qwen3:1.7b",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        format="json",
-    )
+    model="qwen3:1.7b",
+    messages=[
+        {
+            "role": "user",
+            "content": prompt,
+        }
+    ],
+    format="json",
+    options={
+        "temperature": 0,
+    },
+)
 
     ai_data = json.loads(
         response["message"]["content"]
@@ -322,6 +334,11 @@ Requirements:
 
     ai_tasks = ai_data["tasks"]
 
+    if not 2 <= len(ai_tasks) <= 6:
+        raise ValueError(
+        "AI workflow must contain between 2 and 6 tasks."
+    )
+ 
     tasks = []
 
     for task_id, ai_task in enumerate(ai_tasks, start=1):

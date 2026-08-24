@@ -93,6 +93,42 @@ class TestWebApp(unittest.TestCase):
 
         mock_update_workflow.assert_called_once_with(workflow)
 
+    @patch("web_app.save_workflow")
+    @patch("web_app.analyze_request")
+    def test_create_workflow_uses_selected_ai_engine(
+        self,
+        mock_analyze_request,
+        mock_save_workflow,
+    ):
+        """Creating a workflow should pass the selected engine to the analyzer."""
+
+        mock_analyze_request.return_value = {
+            "id": "WF-001",
+            "request": "Test AI workflow",
+            "created": "2026-08-24",
+            "status": "Active",
+            "tasks": [],
+        }
+
+        response = self.client.post(
+            "/workflows",
+            data={
+                "request": "Test AI workflow",
+                "engine": "ai",
+            },
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+        )
+
+        mock_analyze_request.assert_called_once_with(
+            "Test AI workflow",
+            engine="ai",
+        )
+
+        mock_save_workflow.assert_called_once()
 
 if __name__ == "__main__":
     unittest.main()

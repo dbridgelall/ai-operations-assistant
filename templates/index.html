@@ -143,6 +143,7 @@
             -->
 
             <form
+            id="workflow-form"
             class="workflow-form"
             action="{{ url_for('create_workflow') }}"
             method="POST"
@@ -160,7 +161,24 @@
                     required
                     placeholder="Example: Coordinate interviews with five candidates, send confirmation emails, and prepare an update for the hiring committee."
                 ></textarea>
+                
+                <div class="engine-selector">
 
+                    <label for="engine">
+                        Workflow Engine
+                    </label>
+
+                    <select id="engine" name="engine">
+                        <option value="rules">
+                            Rules Engine
+                        </option>
+
+                        <option value="ai">
+                            Local AI — Qwen
+                        </option>
+                    </select>
+
+                </div>
 
                 <div class="form-footer">
 
@@ -170,7 +188,10 @@
                     </p>
 
 
-                    <button type="submit">
+                    <button
+                    id="generate-button"
+                    type="submit"
+                    >   
                         Generate Workflow
                     </button>
 
@@ -360,7 +381,22 @@
         </p>
 
     </footer>
+    
+<script>
+    const workflowForm = document.getElementById("workflow-form");
+    const generateButton = document.getElementById("generate-button");
+    const engineSelect = document.getElementById("engine");
 
+    workflowForm.addEventListener("submit", function () {
+        generateButton.disabled = true;
+
+        if (engineSelect.value === "ai") {
+            generateButton.textContent = "Generating with Local AI...";
+        } else {
+            generateButton.textContent = "Generating Workflow...";
+        }
+    });
+</script>
 
 </body>
 
