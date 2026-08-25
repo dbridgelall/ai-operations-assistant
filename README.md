@@ -86,39 +86,30 @@ The generated tasks can then be started, completed, and tracked through the web 
 
 ## Architecture
 
-```text
-User
-  |
-  v
-Flask Web Interface
-  |
-  v
-Workflow Engine Selector
-  |
-  +-------------------+
-  |                   |
-  v                   v
-Rules Engine       Local AI Engine
-                       |
-                       v
-                    Ollama
-                       |
-                       v
-                  Qwen3 1.7B
-  |                   |
-  +---------+---------+
-            |
-            v
-      Python Validation
-            |
-            v
-    Standardized Tasks
-            |
-            v
-      JSON Persistence
-            |
-            v
-   Workflow Dashboard
+                 User
+                  |
+          +-------+-------+
+          |               |
+          v               v
+       CLI App        Flask Web App
+       app.py          web_app.py
+          \               /
+           \             /
+            v           v
+           workflow_engine.py
+             /       \
+            /         \
+      Rules Engine   Local AI
+                        |
+                        v
+                   Ollama / Qwen
+             \          /
+              \        /
+               v      v
+               storage.py
+                   |
+                   v
+             JSON Persistence
 ```
 
 The AI model is responsible for interpreting and decomposing the operational request. Python remains responsible for validation, application state, task IDs, ownership defaults, status management, and persistence.
@@ -243,6 +234,7 @@ If Local AI cannot generate a valid workflow, the web interface displays an erro
 ```text
 ai-operations-assistant/
 ├── app.py
+├── workflow_engine.py
 ├── web_app.py
 ├── storage.py
 ├── requirements.txt
@@ -253,7 +245,6 @@ ai-operations-assistant/
 ├── static/
 │   └── style.css
 ├── test_app.py
-├── test_storage.py
 └── test_web_app.py
 ```
 

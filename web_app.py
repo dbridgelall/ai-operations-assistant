@@ -32,11 +32,11 @@ Dashboard and Task Management
 
 from flask import Flask, redirect, render_template, request, url_for
 
-from app import (
+from workflow_engine import (
     AIWorkflowError,
     analyze_request,
     calculate_progress,
-    determine_next_action,
+    get_task,
 )
 from storage import (
     get_workflow,
@@ -44,7 +44,6 @@ from storage import (
     save_workflow,
     update_workflow,
 )
-
 
 # ===========================================================================
 # APPLICATION CONFIGURATION
@@ -255,12 +254,7 @@ def start_task(workflow_id, task_id):
     if workflow is None:
         return "Workflow not found.", 404
 
-    selected_task = None
-
-    for task in workflow["tasks"]:
-        if task["id"] == task_id:
-            selected_task = task
-            break
+    selected_task = get_task(workflow, task_id)
 
     if selected_task is None:
         return "Task not found.", 404
@@ -296,12 +290,7 @@ def complete_task(workflow_id, task_id):
     if workflow is None:
         return "Workflow not found.", 404
 
-    selected_task = None
-
-    for task in workflow["tasks"]:
-        if task["id"] == task_id:
-            selected_task = task
-            break
+    selected_task = get_task(workflow, task_id)
 
     if selected_task is None:
         return "Task not found.", 404

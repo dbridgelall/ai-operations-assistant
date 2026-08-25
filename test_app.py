@@ -36,8 +36,8 @@ from app import (
     calculate_progress,
     create_task,
     determine_next_action,
+    get_task,
 )
-
 
 # ===========================================================================
 # TASK CREATION TESTS
@@ -62,6 +62,38 @@ class TestTaskCreation(unittest.TestCase):
         self.assertEqual(task["priority"], "High")
         self.assertEqual(task["owner"], "Unassigned")
         self.assertEqual(task["status"], "Not Started")
+
+    class TestTaskLookup(unittest.TestCase):
+        """Test task lookup within a workflow."""
+
+    def test_get_task_returns_matching_task(self):
+        """A matching task ID should return the correct task."""
+
+        workflow = {
+            "tasks": [
+                create_task(1, "First task", "Testing"),
+                create_task(2, "Second task", "Testing"),
+            ]
+        }
+
+        task = get_task(workflow, 2)
+
+        self.assertIsNotNone(task)
+        self.assertEqual(task["id"], 2)
+        self.assertEqual(task["task"], "Second task")
+
+    def test_get_task_returns_none_for_missing_task(self):
+        """An unknown task ID should return None."""
+
+        workflow = {
+            "tasks": [
+                create_task(1, "First task", "Testing"),
+            ]
+        }
+
+        task = get_task(workflow, 99)
+
+        self.assertIsNone(task)
 
 
 # ===========================================================================
