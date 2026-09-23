@@ -225,3 +225,8 @@ data/workflows.json
 __pycache__/
 *.pyc
 
+# Local workflow data
+data/
+
+# Temporary migration scripts
+migrate_task_statuses.py
