@@ -266,14 +266,14 @@ def update_task_status():
         return
 
     print("\nSELECT NEW STATUS")
-    print("1. Not Started")
+    print("1. Incomplete")
     print("2. In Progress")
     print("3. Completed")
 
     status_choice = input("\nSelection: ").strip()
 
     statuses = {
-        "1": "Not Started",
+        "1": "Incomplete",
         "2": "In Progress",
         "3": "Completed",
     }

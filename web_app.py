@@ -241,6 +241,81 @@ def workflow_details(workflow_id):
         workflow=workflow,
         progress=progress,
     )
+
+# ===========================================================================
+# ASSIGN TASK OWNER ROUTE
+# ===========================================================================
+
+
+@app.route(
+    "/workflows/<workflow_id>/tasks/<int:task_id>/assign",
+    methods=["POST"],
+)
+def assign_task_owner(workflow_id, task_id):
+    """
+    Assign or reassign an owner to an existing workflow task.
+    """
+
+    workflow = get_workflow(workflow_id.upper())
+
+    if workflow is None:
+        return "Workflow not found.", 404
+
+    selected_task = get_task(workflow, task_id)
+
+    if selected_task is None:
+        return "Task not found.", 404
+
+    owner = request.form.get("owner", "").strip()
+
+    selected_task["owner"] = owner or "Unassigned"
+
+    update_workflow(workflow)
+
+    return redirect(
+        url_for(
+            "workflow_details",
+            workflow_id=workflow["id"],
+        )
+    )
+
+# ===========================================================================
+# MARK TASK INCOMPLETE ROUTE
+# ===========================================================================
+
+
+@app.route(
+    "/workflows/<workflow_id>/tasks/<int:task_id>/incomplete",
+    methods=["POST"],
+)
+def incomplete_task(workflow_id, task_id):
+    """
+    Mark an existing workflow task as incomplete.
+    """
+
+    workflow = get_workflow(workflow_id.upper())
+
+    if workflow is None:
+        return "Workflow not found.", 404
+
+    selected_task = get_task(workflow, task_id)
+
+    if selected_task is None:
+        return "Task not found.", 404
+
+    selected_task["status"] = "Incomplete"
+
+    workflow["status"] = "Active"
+
+    update_workflow(workflow)
+
+    return redirect(
+        url_for(
+            "workflow_details",
+            workflow_id=workflow["id"],
+        )
+    )
+
 # ===========================================================================
 # START TASK ROUTE
 # ===========================================================================

@@ -226,12 +226,22 @@
                         <div class="task-meta">
 
 
-                            <span>
-                                Owner:
-                                <strong>
-                                    {{ task.owner }}
-                                </strong>
-                            </span>
+                            <form action="{{ url_for('assign_task_owner', workflow_id=workflow.id, task_id=task.id) }}"
+                                method="POST" class="owner-form">
+
+                                <label for="owner-{{ task.id }}">
+                                    Owner:
+                                </label>
+
+                                <input type="text" id="owner-{{ task.id }}" name="owner"
+                                    value="{{ '' if task.owner == 'Unassigned' else task.owner }}"
+                                    placeholder="Unassigned" maxlength="100">
+
+                                <button type="submit">
+                                    Assign
+                                </button>
+
+                            </form>
 
 
                             <span>
@@ -240,19 +250,55 @@
                                     {{ task.status }}
                                 </strong>
                             </span>
-                            {% if task.status != 'Completed' %}
+                            <div class="task-actions">
 
-                                <form
-                                    action="{{ url_for('complete_task', workflow_id=workflow.id, task_id=task.id) }}"
-                                    method="POST"
-                                >
+                                {% if task.status in ['Incomplete', 'Not Started'] %}
+
+                                <form action="{{ url_for('start_task', workflow_id=workflow.id, task_id=task.id) }}"
+                                    method="POST">
+                                    <button type="submit">
+                                        Start Task
+                                    </button>
+                                </form>
+
+                                <form action="{{ url_for('complete_task', workflow_id=workflow.id, task_id=task.id) }}"
+                                    method="POST">
                                     <button type="submit">
                                         Mark Complete
                                     </button>
                                 </form>
 
-                            {% endif %}
-                            
+                                {% elif task.status == 'In Progress' %}
+
+                                <form
+                                    action="{{ url_for('incomplete_task', workflow_id=workflow.id, task_id=task.id) }}"
+                                    method="POST">
+                                    <button type="submit">
+                                        Mark Incomplete
+                                    </button>
+                                </form>
+
+                                <form action="{{ url_for('complete_task', workflow_id=workflow.id, task_id=task.id) }}"
+                                    method="POST">
+                                    <button type="submit">
+                                        Mark Complete
+                                    </button>
+                                </form>
+
+                                {% elif task.status == 'Completed' %}
+
+                                <form
+                                    action="{{ url_for('incomplete_task', workflow_id=workflow.id, task_id=task.id) }}"
+                                    method="POST">
+                                    <button type="submit">
+                                        Reopen Task
+                                    </button>
+                                </form>
+
+                                {% endif %}
+
+                            </div>
+
                         </div>
 
 

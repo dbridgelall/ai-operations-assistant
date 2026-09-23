@@ -61,7 +61,7 @@ class TestTaskCreation(unittest.TestCase):
         self.assertEqual(task["category"], "Scheduling")
         self.assertEqual(task["priority"], "High")
         self.assertEqual(task["owner"], "Unassigned")
-        self.assertEqual(task["status"], "Not Started")
+        self.assertEqual(task["status"], "Incomplete")
 
     class TestTaskLookup(unittest.TestCase):
         """Test task lookup within a workflow."""
@@ -234,7 +234,7 @@ class TestRequestAnalysis(unittest.TestCase):
 
         self.assertEqual(
             first_task["status"],
-            "Not Started",
+            "Incomplete",
         )
 
         self.assertEqual(

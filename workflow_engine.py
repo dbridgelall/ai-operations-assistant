@@ -41,7 +41,7 @@ def create_task(task_id, name, category, priority="Medium"):
         "category": category,
         "priority": priority,
         "owner": "Unassigned",
-        "status": "Not Started",
+        "status": "Incomplete",
     }
 
 def get_task(workflow, task_id):
