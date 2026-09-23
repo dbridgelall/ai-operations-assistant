@@ -45,6 +45,8 @@ from storage import (
     update_workflow,
 )
 
+from automation import send_workflow_to_n8n
+
 # ===========================================================================
 # APPLICATION CONFIGURATION
 # ===========================================================================
@@ -191,6 +193,9 @@ def create_workflow():
         )
 
     save_workflow(workflow)
+
+    # Send the newly created workflow to n8n for automation.
+    send_workflow_to_n8n(workflow)
 
     return redirect(
         url_for(
