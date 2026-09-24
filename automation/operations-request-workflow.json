@@ -1,0 +1,365 @@
+{
+  "name": "Operations Request Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ac80f77f-c8b0-4bcf-ba47-7fdd97fe917e",
+              "name": "=request",
+              "value": "={{ $json.body.request }}",
+              "type": "string"
+            },
+            {
+              "id": "b3b1c325-aaa1-40ef-80c7-0ffe4a6c9be3",
+              "name": "=department",
+              "value": "={{ $json.body.department }}",
+              "type": "string"
+            },
+            {
+              "id": "427b44f6-0d80-49ac-997c-18d1afb6feeb",
+              "name": "=priority",
+              "value": "={{ $json.body.priority }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "ff10772b-eb2d-4a04-a4a5-91cc2fb3e2d9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1e84ff83-509f-4c6b-8011-fdb5d5ec8219",
+              "leftValue": "={{ $json.priority }}",
+              "rightValue": "=High",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": "={{ $json.priority }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        -16
+      ],
+      "id": "d02c6086-d27a-47ad-833f-6a294e522731",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "operations-request",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        -16
+      ],
+      "id": "60fe8ded-251e-4581-930d-46d9b0c18e2a",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bb8ddc28-9c33-43dc-8246-b1765735c402",
+              "name": "notification_type",
+              "value": "URGENT",
+              "type": "string"
+            },
+            {
+              "id": "f55b5dac-61fa-4c70-b818-f498c1e9959c",
+              "name": "=message",
+              "value": "={{ \"URGENT REQUEST: \" + $json.request }}",
+              "type": "string"
+            },
+            {
+              "id": "17824c27-55b9-4b6d-89a0-5dbc41e2291c",
+              "name": "=department",
+              "value": "={{ $json.department }}",
+              "type": "string"
+            },
+            {
+              "id": "a739deb0-dcba-433a-9455-f112ba936fee",
+              "name": "=priority",
+              "value": "={{ $json.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "7417cab6-1eea-4795-a3d3-976ec7948937",
+              "name": "=request_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "743a3e6d-23fd-4a02-a7f7-dad3c715cac2",
+              "name": "=timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        704,
+        -64
+      ],
+      "id": "ca74a63b-c332-4c5f-afbc-e8ab3b1a3627",
+      "name": "Prepare Urgent Notification"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "84aef23c-14b8-40fe-8a3c-72c70768b073",
+              "name": "notification_type",
+              "value": "STANDARD",
+              "type": "string"
+            },
+            {
+              "id": "0fdc7eaf-dbb0-46d9-ac49-ba2627dd9da3",
+              "name": "=message",
+              "value": "={{ \"STANDARD REQUEST: \" + $json.request }}",
+              "type": "string"
+            },
+            {
+              "id": "c886973e-6c15-416a-9012-c7fe5d46f6f1",
+              "name": "=department",
+              "value": "={{ $json.department }}",
+              "type": "string"
+            },
+            {
+              "id": "8798a890-f3ab-4d6a-84f6-cee54608260a",
+              "name": "=priority",
+              "value": "={{ $json.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "9b02d7b6-b8a5-4c42-ba36-ef70f761f297",
+              "name": "=request_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "6a5d12e8-7da3-4946-95fd-e043ab7cde76",
+              "name": "=timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        704,
+        80
+      ],
+      "id": "0fdc2e1a-95f5-461e-b7b1-213ebdb54d51",
+      "name": "Prepare Standard Request"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notification_type",
+              "displayName": "notification_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        0
+      ],
+      "id": "52ccfd1b-dc46-426d-bbc9-72be8009816b",
+      "name": "Append row in sheet"
+    }
+  ],
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Prepare Urgent Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Standard Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Standard Request": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Urgent Notification": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
